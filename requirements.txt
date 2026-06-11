@@ -1,0 +1,39 @@
+# AI-Powered Expense Tracker - Dependencies
+
+# Web Framework
+streamlit
+
+# Database
+SQLAlchemy
+
+# Data Processing
+pandas
+numpy
+
+# Visualization
+plotly
+
+# AI Services
+openai
+google-genai
+httpx
+
+# Environment
+python-dotenv
+
+# Image Processing / OCR
+pillow
+pytesseract
+
+# PDF Generation
+fpdf2
+
+# Markdown
+markdown
+
+# Testing
+pytest
+pytest-cov
+
+# Utilities
+pydantic

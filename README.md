@@ -1,93 +1,286 @@
-# Expense Tracker
+# 💰 AI-Powered Expense Tracker
 
+A modern, production-ready personal finance application built with **Streamlit** that helps users track expenses, manage income, and gain intelligent financial insights using AI.
 
+> **Built for Hackathons** - Fully functional, demo-ready application with AI-powered features.
 
-## Getting started
+---
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+## ✨ Features
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+### 📊 Dashboard
+- **Real-time financial overview** - Total Income, Expenses, Savings metrics
+- **Interactive Plotly charts** - Category spending pie, monthly trends, income vs expense bars
+- **Top spending categories** - Identify where your money goes
+- **Spending alerts** - Detect unusual spending patterns automatically
+- **Recent transactions** - Quick view of latest expenses
 
-## Add your files
+### 💳 Expense & Income Tracking (CRUD)
+- **Add expenses** with date, amount, category, description, payment method
+- **Add income** with date, amount, source
+- **View all transactions** with search and filter
+- **Delete** individual records
+- **AI-powered category suggestions** from expense descriptions
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
+### 🤖 AI Financial Assistant
+- Chat interface to ask questions about your finances
+- Personalized insights using **actual user expense data**
+- Questions supported:
+  - "Where am I spending the most?"
+  - "How can I save more money?"
+  - "Summarize my monthly expenses"
+  - "Suggest a budget for me"
+  - "Detect unusual spending patterns"
+  - "Predict my future spending"
+- **Intelligent fallback** when AI is unavailable - uses actual data
+
+### 📑 AI Spending Reports
+- **Weekly Reports** - Total spending, major categories, savings suggestions
+- **Monthly Reports** - Spending trends, financial health score, budget recommendations
+- **Download as Markdown** for sharing or documentation
+
+### 📸 Receipt Scanner
+- Upload receipt images (PNG, JPG, JPEG, WebP)
+- **OCR text extraction** using Tesseract (with graceful fallback)
+- Auto-extract: Merchant name, Date, Total amount, Line items
+- **Auto-populate expense form** from scanned data
+- **AI-enhanced parsing** for complex receipts
+
+### ⚙️ AI Provider System
+- **Local AI** - Ollama (llama3, mistral, gemma3)
+- **Cloud AI (BYOK)**:
+  - OpenAI (GPT-3.5, GPT-4)
+  - Google Gemini (Flash, Pro)
+  - OpenRouter (Claude, Gemini, Llama, Mistral)
+- **Seamless switching** between providers
+- **Secure key handling** - Keys stored only in session state, never persisted
+
+---
+
+## 🏗️ Architecture
 
 ```
-cd existing_repo
-git remote add origin https://code.swecha.org/Abdullah_285/expense-tracker.git
-git branch -M main
-git push -uf origin main
+expense-tracker/
+│
+├── app.py                      # Main entry point, sidebar navigation, session state
+├── requirements.txt            # Python dependencies
+├── .env.example                # Environment configuration template
+├── sample_data.py              # Sample data generator (100+ expenses)
+│
+├── database/                   # Data layer
+│   ├── db.py                   # Database connection, initialization
+│   ├── models.py               # SQLAlchemy models (Expense, Income, Settings)
+│   └── repository.py          # Repository pattern (CRUD operations)
+│
+├── pages/                      # Streamlit UI pages
+│   ├── dashboard.py            # Financial overview with charts
+│   ├── expenses.py             # Expense/Income CRUD + Receipt scanner
+│   ├── reports.py              # AI-powered spending reports
+│   ├── ai_assistant.py         # Chat-based financial advisor
+│   └── settings.py             # AI provider configuration
+│
+├── services/                   # Business logic
+│   ├── ai_service.py           # AI Service Factory (unified interface)
+│   ├── ollama_service.py       # Ollama local inference
+│   ├── openai_service.py       # OpenAI cloud API
+│   ├── gemini_service.py       # Google Gemini API
+│   ├── openrouter_service.py   # OpenRouter API
+│   └── analytics_service.py    # Financial calculations & metrics
+│
+├── utils/                      # Utilities
+│   ├── charts.py               # Plotly chart builder (dark theme)
+│   ├── helpers.py              # Currency formatting, validation, logging
+│   └── receipt_parser.py       # OCR receipt extraction & parsing
+│
+├── tests/                      # Test suite
+│   ├── test_database.py        # Database CRUD tests
+│   └── test_ai_service.py      # AI service tests
+│
+└── data/                       # Runtime data (created automatically)
+    ├── expense_tracker.db      # SQLite database
+    └── app.log                 # Application logs
 ```
 
-## Integrate with your tools
+---
 
-- [ ] [Set up project integrations](https://code.swecha.org/Abdullah_285/expense-tracker/-/settings/integrations)
+## 🚀 Quick Start
 
-## Collaborate with your team
+### Prerequisites
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
+- **Python 3.10+** (Python 3.14+ recommended)
+- **pip** (Python package manager)
 
-## Test and Deploy
+### Installation
 
-Use the built-in continuous integration in GitLab.
+```bash
+# 1. Clone the repository
+git clone <repository-url>
+cd expense-tracker
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+# 2. Install dependencies
+pip install -r requirements.txt
 
-***
+# 3. (Optional) Create .env file for API keys
+cp .env.example .env
+# Edit .env with your API keys
+```
 
-# Editing this README
+### Run the Application
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+```bash
+streamlit run app.py
+```
 
-## Suggestions for a good README
+The app will open at **http://localhost:8501**
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+### (Optional) Generate Sample Data
 
-## Name
-Choose a self-explaining name for your project.
+```bash
+python sample_data.py
+```
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+This creates 100 sample expenses and 12 months of income records for testing.
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+---
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+## 🤖 AI Provider Setup
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+### Option 1: Local AI (Ollama) - Free & Offline
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+1. **Install Ollama** from [ollama.ai](https://ollama.ai)
+2. **Pull a model**:
+   ```bash
+   ollama pull llama3     # 4.7GB - Recommended
+   ollama pull mistral    # 4.1GB - Faster
+   ollama pull gemma3     # 4.0GB - Efficient
+   ```
+3. **Start Ollama** (usually runs as a service)
+4. In the app, go to **Settings** → **Local AI (Ollama)** → **Test Connection**
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+### Option 2: Cloud AI (BYOK - Bring Your Own Key)
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+#### OpenAI
+1. Get an API key from [platform.openai.com/api-keys](https://platform.openai.com/api-keys)
+2. In the app: **Settings** → **Cloud AI** → **OpenAI**
+3. Enter your key and select model (GPT-3.5-turbo or GPT-4)
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+#### Google Gemini
+1. Get an API key from [makersuite.google.com/app/apikey](https://makersuite.google.com/app/apikey)
+2. In the app: **Settings** → **Cloud AI** → **Gemini**
+3. Enter your key and select model
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+#### OpenRouter
+1. Get an API key from [openrouter.ai/keys](https://openrouter.ai/keys)
+2. In the app: **Settings** → **Cloud AI** → **OpenRouter**
+3. Enter your key and select model (Claude, Gemini, Llama, etc.)
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+### Security Note
+- **API keys are NEVER stored in the database**
+- Keys are kept only in **Streamlit session state** (browser session)
+- Keys are cleared when you close the browser
+- All API calls are made server-side; keys never reach the frontend
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+---
 
-## License
-For open source projects, say how it is licensed.
+## 🧪 Running Tests
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+```bash
+# Run all tests
+pytest tests/ -v
+
+# Run specific test files
+pytest tests/test_database.py -v
+pytest tests/test_ai_service.py -v
+
+# Run with coverage
+pytest tests/ --cov=. --cov-report=term-missing
+```
+
+---
+
+## 🛡️ Security
+
+- **SQL Injection Protection**: All database queries use parameterized SQLAlchemy ORM
+- **Input Validation**: All user inputs are validated and sanitized
+- **Secure API Key Handling**: Keys stored only in session state, never in database
+- **Graceful Error Handling**: All exceptions are caught and logged; never expose internals
+- **Logging**: Comprehensive logging to file and console for debugging
+
+---
+
+## 💻 Tech Stack
+
+| Technology | Purpose |
+|---|---|
+| **Python 3.14+** | Core programming language |
+| **Streamlit** | Web application framework |
+| **SQLite + SQLAlchemy** | Database and ORM |
+| **Pandas** | Data processing and analytics |
+| **Plotly** | Interactive charts and visualizations |
+| **OpenAI SDK** | OpenAI API integration (BYOK) |
+| **Google GenAI** | Gemini API integration (BYOK) |
+| **Ollama** | Local LLM inference |
+| **OpenRouter** | Unified AI API access |
+| **Tesseract OCR** | Receipt text extraction |
+| **Pillow** | Image processing |
+| **pytest** | Unit testing |
+| **python-dotenv** | Environment configuration |
+
+---
+
+## 📸 Screenshots
+
+<!-- Screenshots placeholder - Add images here -->
+| Dashboard | Expenses |
+|:---:|:---:|
+| *(Add screenshot)* | *(Add screenshot)* |
+
+| AI Assistant | Reports |
+|:---:|:---:|
+| *(Add screenshot)* | *(Add screenshot)* |
+
+---
+
+## 📋 Project Requirements Checklist
+
+### ✅ Mandatory Requirements
+- [x] **AI-powered features** - Categorization, assistant, reports
+- [x] **Local AI Inference** - Ollama support (llama3, mistral, gemma3)
+- [x] **BYOK (Bring Your Own Key)** - OpenAI, Gemini, OpenRouter
+- [x] **Choice between Local and Cloud AI** - Settings page toggle
+- [x] **Fully functional and demo-ready** - Complete application
+
+### ✅ Core Features
+- [x] Expense CRUD with full field support
+- [x] Income CRUD
+- [x] Interactive Dashboard with Plotly charts
+- [x] 10 expense categories
+- [x] Multiple payment methods
+
+### ✅ AI Features
+- [x] AI Expense Categorization
+- [x] AI Financial Assistant with chat
+- [x] AI Spending Reports (weekly/monthly)
+- [x] AI Receipt Scanner
+- [x] AI Provider Management
+
+### ✅ Technical Requirements
+- [x] Repository pattern for database
+- [x] SQLite database
+- [x] Proper security (input validation, SQL injection protection)
+- [x] Unit tests
+- [x] Comprehensive documentation
+- [x] Requirements.txt
+- [x] Sample data generator
+
+---
+
+## 📝 License
+
+This project is built for educational and hackathon purposes.
+
+## 🙏 Acknowledgments
+
+- Built with Streamlit - The fastest way to build data apps
+- Powered by Ollama, OpenAI, Google Gemini, and OpenRouter
+- OCR support via Tesseract
