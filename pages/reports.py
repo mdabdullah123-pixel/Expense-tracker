@@ -6,7 +6,7 @@ Reports include spending trends, financial health scores,
 budget recommendations, and savings suggestions.
 Reports can be downloaded as markdown files.
 """
-  
+
 import streamlit as st
 import logging
 from datetime import date, timedelta
