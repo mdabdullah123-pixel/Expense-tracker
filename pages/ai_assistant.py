@@ -1,22 +1,14 @@
 """
-AI Financial Assistant page - Chat interface for financial questions.
+AI Financial Assistant - Simple Chatbot Interface.
 
-Users can ask questions about their finances and get AI-powered responses
-based on their actual expense and income data. Supports questions about:
-- Spending patterns
-- Savings advice
-- Budget suggestions
-- Spending predictions
-- Unusual spending patterns
-
-Works with or without an AI provider configured.
-When no AI provider is set, uses data-driven fallback responses.
+A clean, simple chat interface where users can ask questions about their
+finances and get clear, helpful answers based on their actual expense data.
+Works without any AI provider configuration.
 """
 
 import streamlit as st
 import logging
 from datetime import date, datetime
-
 from services.analytics_service import AnalyticsService
 from utils.helpers import format_currency
 from database.repository import ExpenseRepository
@@ -24,415 +16,191 @@ from database.repository import ExpenseRepository
 logger = logging.getLogger(__name__)
 
 
-# List of example questions for the AI assistant
-EXAMPLE_QUESTIONS = [
-    "Where am I spending the most money?",
-    "How can I save more money this month?",
-    "Summarize my monthly expenses",
-    "Suggest a budget for me",
-    "Detect any unusual spending patterns",
-    "What's my financial health score?",
-    "How much did I spend on food this month?",
-    "Predict my spending for next month",
-    "Which category has the highest spending?",
-    "Compare this month to last month",
-]
-
-
 def render_ai_assistant():
-    """Render the AI Financial Assistant chat page."""
-    st.title("🤖 AI Financial Assistant")
-    st.markdown("Your personal AI-powered financial advisor")
-    st.divider()
+    """Render a simple AI Financial Assistant chatbot."""
+    st.title("🤖 AI Assistant")
+    st.markdown("Ask me anything about your finances!")
 
-    # Check if AI is configured
-    ai_service = st.session_state.get("ai_service")
-    ai_available = ai_service and ai_service.is_configured
-
-    # Initialize chat history in session state if not exists
+    # Initialize chat
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = []
 
-    # Show AI provider status
-    if ai_available:
-        st.caption(
-            f"Using **{ai_service.provider}** - Model: **{ai_service.model}**"
-        )
+    ai_service = st.session_state.get("ai_service")
+    use_ai = ai_service and ai_service.is_configured
+
+    if use_ai:
+        st.caption(f"Using **{ai_service.provider}** • Model: **{ai_service.model}**")
     else:
-        st.info(
-            "💡 **AI mode:** Using your financial data for answers. "
-            "Configure an AI provider in **Settings** for smarter AI-powered responses."
-        )
+        st.caption("💡 Using your financial data for answers")
 
-    # Quick action buttons
-    st.subheader("⚡ Quick Questions")
-    quick_cols = st.columns(2)
-    quick_questions = [
-        "Where am I spending the most?",
-        "How can I save money?",
-        "Summarize my expenses",
-        "Detect unusual spending",
-    ]
+    # Chat display
+    for msg in st.session_state.chat_history:
+        if msg["role"] == "user":
+            st.markdown(f"<div style='text-align:right;background:#1E3A5F;padding:10px;border-radius:10px;margin:5px 0'>"
+                        f"<b>You:</b> {msg['content']}</div>", unsafe_allow_html=True)
+        else:
+            st.markdown(f"<div style='background:#2D2D44;padding:10px;border-radius:10px;margin:5px 0'>"
+                        f"<b>🤖 Assistant:</b><br>{msg['content']}</div>", unsafe_allow_html=True)
 
-    for i, question in enumerate(quick_questions):
-        col = quick_cols[i % 2]
-        if col.button(question, width="stretch", key=f"quick_{i}"):
-            # Add question to chat and process
-            st.session_state.chat_history.append({
-                "role": "user",
-                "content": question,
-                "timestamp": datetime.now().strftime("%H:%M"),
-            })
-            _process_question(question, ai_service if ai_available else None)
-            st.rerun()
-
-    st.divider()
-
-    # Chat interface
-    st.subheader("💬 Chat with your Financial Assistant")
-
-    # Display chat history
-    chat_container = st.container()
-    with chat_container:
-        for message in st.session_state.chat_history:
-            role = message["role"]
-            content = message["content"]
-            timestamp = message.get("timestamp", "")
-
-            if role == "user":
-                st.markdown(
-                    f"<div style='text-align: right; background-color: #1E3A5F; "
-                    f"padding: 10px; border-radius: 10px; margin: 5px 0;'>"
-                    f"<b>You</b> ({timestamp}): {content}</div>",
-                    unsafe_allow_html=True,
-                )
-            else:
-                st.markdown(
-                    f"<div style='background-color: #2D2D44; padding: 10px; "
-                    f"border-radius: 10px; margin: 5px 0;'>"
-                    f"<b>🤖 Assistant</b> ({timestamp}):<br>{content}</div>",
-                    unsafe_allow_html=True,
-                )
-
-    # Input area
-    st.divider()
-
-    # Custom question input
-    with st.form("chat_input_form", clear_on_submit=True):
-        col1, col2 = st.columns([5, 1])
-        with col1:
-            user_question = st.text_input(
-                "Ask a question about your finances",
-                placeholder="e.g., Where am I spending the most?",
-                label_visibility="collapsed",
-                key="user_question_input",
-            )
-        with col2:
-            submitted = st.form_submit_button("Send 📤", width="stretch")
-
-        if submitted and user_question:
-            # Add to chat history
-            st.session_state.chat_history.append({
-                "role": "user",
-                "content": user_question,
-                "timestamp": datetime.now().strftime("%H:%M"),
-            })
-            _process_question(user_question, ai_service if ai_available else None)
-            st.rerun()
-
-    # Example questions dropdown
-    with st.expander("💡 Need ideas? Try these questions"):
-        for q in EXAMPLE_QUESTIONS:
-            if st.button(q, key=f"example_{q}", width="stretch"):
-                st.session_state.chat_history.append({
-                    "role": "user",
-                    "content": q,
-                    "timestamp": datetime.now().strftime("%H:%M"),
-                })
-                _process_question(q, ai_service if ai_available else None)
+    # Quick questions
+    with st.expander("⚡ Quick Questions", expanded=False):
+        cols = st.columns(2)
+        questions = [
+            "Where am I spending the most?",
+            "How can I save money?",
+            "Show my monthly summary",
+            "Check for unusual spending",
+            "What's my financial health score?",
+            "How much did I spend on food?",
+            "Suggest a budget",
+            "Predict next month's spending",
+        ]
+        for i, q in enumerate(questions):
+            if cols[i % 2].button(q, key=f"qq_{i}", width="stretch"):
+                answer = get_answer(q)
+                st.session_state.chat_history.append({"role": "user", "content": q})
+                st.session_state.chat_history.append({"role": "assistant", "content": answer})
                 st.rerun()
 
-    # Clear chat button
+    # Chat input
+    with st.form("chat_form", clear_on_submit=True):
+        cols = st.columns([5, 1])
+        with cols[0]:
+            question = st.text_input("Ask a question", placeholder="e.g., Where am I spending the most?", label_visibility="collapsed")
+        with cols[1]:
+            submitted = st.form_submit_button("Send", width="stretch")
+
+    if submitted and question:
+        answer = get_answer(question)
+        st.session_state.chat_history.append({"role": "user", "content": question})
+        st.session_state.chat_history.append({"role": "assistant", "content": answer})
+        st.rerun()
+
     if st.session_state.chat_history:
-        if st.button("🗑️ Clear Chat History", width="stretch", type="secondary"):
-            st.session_state.chat_history = []
-            st.rerun()
+        st.button("🗑️ Clear Chat", on_click=lambda: st.session_state.chat_history.clear())
 
 
-def _process_question(question: str, ai_service):
-    """
-    Process a user's financial question and get response.
+def get_answer(question: str) -> str:
+    """Get a simple answer to a financial question."""
+    q = question.lower()
     
-    Uses AI if available, otherwise falls back to data-driven responses.
-    
-    Args:
-        question: The user's question
-        ai_service: Configured AI service instance or None
-    """
-    with st.spinner("🧠 Analyzing your financial data..."):
-        try:
-            # Get spending data context
-            data_context = AnalyticsService.build_ai_context()
-
-            # Get unusual spending alerts for additional context
-            unusual = AnalyticsService.detect_unusual_spending()
-            if unusual:
-                data_context += "\n\n=== UNUSUAL SPENDING PATTERNS ===\n"
-                for item in unusual:
-                    data_context += (
-                        f"{item['category']}: {item['type']} by "
-                        f"{abs(item['deviation']):.1f}% "
-                        f"(Current: ₹{item['current']:.2f}, "
-                        f"Avg: ₹{item['average']:.2f})\n"
-                    )
-
-            # Get current month summary for fresh context
-            monthly = AnalyticsService.get_current_month_summary()
-            data_context += "\n\n=== CURRENT MONTH SNAPSHOT ===\n"
-            data_context += f"Month: {date.today().strftime('%B %Y')}\n"
-            data_context += f"Expenses: ₹{monthly['total_expense']:.2f}\n"
-            data_context += f"Income: ₹{monthly['total_income']:.2f}\n"
-            data_context += f"Savings: ₹{monthly['savings']:.2f}\n"
-            data_context += f"Top Category: {monthly['top_category']}\n"
-
-            # Try AI if available
-            response = None
-            if ai_service:
-                response = ai_service.ask_financial_question(question, data_context)
-
-            # Fallback response with actual data
-            if not response:
-                response = _generate_fallback_response(question)
-
-            st.session_state.chat_history.append({
-                "role": "assistant",
-                "content": response,
-                "timestamp": datetime.now().strftime("%H:%M"),
-            })
-
-        except Exception as e:
-            logger.error("AI assistant error: %s", str(e))
-            # Even on error, show a helpful response
-            fallback = _generate_fallback_response(question)
-            st.session_state.chat_history.append({
-                "role": "assistant",
-                "content": fallback,
-                "timestamp": datetime.now().strftime("%H:%M"),
-            })
-
-
-def _generate_fallback_response(question: str) -> str:
-    """
-    Generate a response using actual financial data.
-    Provides intelligent answers even without AI.
-    
-    Args:
-        question: The user's question
-        
-    Returns:
-        Response text with actual financial data and insights
-    """
-    monthly = AnalyticsService.get_current_month_summary()
-    total_expenses = AnalyticsService.get_total_expenses()
+    # Gather data once
     total_income = AnalyticsService.get_total_income()
-    category_data = AnalyticsService.get_category_breakdown()
+    total_expenses = AnalyticsService.get_total_expenses()
     savings = total_income - total_expenses
     savings_rate = (savings / total_income * 100) if total_income > 0 else 0
-
-    # Get all expenses for trend analysis
-    expense_df = AnalyticsService.get_expenses_dataframe()
+    category_data = AnalyticsService.get_category_breakdown()
+    monthly = AnalyticsService.get_current_month_summary()
     
-    question_lower = question.lower()
-    response_parts = []
-
-    # Add a friendly greeting based on context
-    response_parts.append("📊 **Here's what I found from your financial data:**\n")
-
-    # Handle "spending" questions
-    if any(word in question_lower for word in ["spend", "expense", "money", "most", "where", "category"]):
-        response_parts.append(f"**Total All-Time Expenses:** {format_currency(total_expenses)}")
-        response_parts.append(f"**Current Month:** {format_currency(monthly['total_expense'])}")
-        response_parts.append(f"**Top Category:** {monthly['top_category']}\n")
-
+    # Spending questions
+    if any(w in q for w in ["spend", "where", "most", "category", "expense"]):
+        lines = [f"**Total Expenses:** {format_currency(total_expenses)}",
+                 f"**This Month:** {format_currency(monthly['total_expense'])}",
+                 f"**Top Category:** {monthly['top_category']}"]
         if category_data:
-            response_parts.append("**📊 Spending by Category (Top 5):**")
-            for i, (cat, amt) in enumerate(
-                sorted(category_data.items(), key=lambda x: x[1], reverse=True)[:5], 1
-            ):
+            lines.append("\n**By Category:**")
+            for cat, amt in sorted(category_data.items(), key=lambda x: x[1], reverse=True)[:5]:
                 pct = (amt / total_expenses * 100) if total_expenses > 0 else 0
-                bar = "█" * int(pct / 5) + "░" * (20 - int(pct / 5))
-                response_parts.append(f"{i}. **{cat}**: {format_currency(amt)} ({pct:.1f}%)")
-            
-            # Find where they spend the most
-            top_cat = max(category_data, key=category_data.get)
-            response_parts.append(f"\n💡 **Insight:** You spend the most on **{top_cat}** "
-                                  f"({format_currency(category_data[top_cat])}).")
-
-    # Handle "save" / "budget" questions
-    elif any(word in question_lower for word in ["save", "budget", "reduce", "cut"]):
-        response_parts.append(f"**Total Income:** {format_currency(total_income)}")
-        response_parts.append(f"**Total Expenses:** {format_currency(total_expenses)}")
-        response_parts.append(f"**Current Savings:** {format_currency(savings)}")
-        response_parts.append(f"**Savings Rate:** {savings_rate:.1f}%\n")
-
+                lines.append(f"• {cat}: {format_currency(amt)} ({pct:.0f}%)")
+            top = max(category_data, key=category_data.get)
+            lines.append(f"\n💡 You spend the most on **{top}** ({format_currency(category_data[top])})")
+        return "\n".join(lines)
+    
+    # Savings questions
+    if any(w in q for w in ["save", "budget", "reduce"]):
+        lines = [f"**Income:** {format_currency(total_income)}",
+                 f"**Expenses:** {format_currency(total_expenses)}",
+                 f"**Savings:** {format_currency(savings)} ({savings_rate:.0f}%)"]
         if savings_rate < 20:
-            response_parts.append("💡 **Tip:** Aim to save at least 20% of your income.")
+            lines.append("\n💡 Try saving at least 20% of your income.")
             if category_data:
-                top_cat = max(category_data, key=category_data.get)
-                top_amt = category_data[top_cat]
-                response_parts.append(
-                    f"📌 Your biggest expense category is **{top_cat}** "
-                    f"({format_currency(top_amt)}). "
-                    f"Reducing this by just 10% would save "
-                    f"**{format_currency(top_amt * 0.1)}**!"
-                )
-        else:
-            response_parts.append("✅ **Great job!** Your savings rate looks healthy.")
-
-        # Budget suggestion
-        if total_income > 0:
-            response_parts.append("\n**📋 Suggested Monthly Budget:**")
-            response_parts.append(f"- Needs (50%): {format_currency(total_income * 0.5)}")
-            response_parts.append(f"- Wants (30%): {format_currency(total_income * 0.3)}")
-            response_parts.append(f"- Savings (20%): {format_currency(total_income * 0.2)}")
-
-    # Handle "summary" / "overview" questions
-    elif any(word in question_lower for word in ["summary", "overview", "report", "month"]):
-        response_parts.append(f"**Period:** Current Month ({date.today().strftime('%B %Y')})")
-        response_parts.append(f"**Income:** {format_currency(monthly['total_income'])}")
-        response_parts.append(f"**Expenses:** {format_currency(monthly['total_expense'])}")
-        response_parts.append(f"**Savings:** {format_currency(monthly['savings'])}")
-        response_parts.append(f"**Transactions:** {monthly['expense_count']} expenses, "
-                              f"{monthly['income_count']} income entries")
-        response_parts.append(f"**Top Category:** {monthly['top_category']}")
-        
-        # Trend if we have data
-        if not expense_df.empty and len(expense_df) > 1:
-            response_parts.append(
-                f"\n📈 **Total History:** {format_currency(total_expenses)} across "
-                f"all {len(expense_df)} transactions."
-            )
-
-    # Handle "unusual" / "pattern" / "detect" questions
-    elif any(word in question_lower for word in ["unusual", "pattern", "detect", "abnormal", "anomaly"]):
+                top = max(category_data, key=category_data.get)
+                amt = category_data[top]
+                lines.append(f"**{top}** is your biggest cost ({format_currency(amt)}). Cutting 10% saves {format_currency(amt*0.1)}!")
+        lines.append("\n**50/30/20 Budget:**")
+        lines.append(f"• Needs (50%): {format_currency(total_income*0.5)}")
+        lines.append(f"• Wants (30%): {format_currency(total_income*0.3)}")
+        lines.append(f"• Savings (20%): {format_currency(total_income*0.2)}")
+        return "\n".join(lines)
+    
+    # Summary
+    if any(w in q for w in ["summary", "overview", "report", "month"]):
+        return (f"**📊 {date.today().strftime('%B %Y')} Summary**\n\n"
+                f"**Income:** {format_currency(monthly['total_income'])}\n"
+                f"**Expenses:** {format_currency(monthly['total_expense'])}\n"
+                f"**Savings:** {format_currency(monthly['savings'])}\n"
+                f"**Transactions:** {monthly['expense_count']} expenses, {monthly['income_count']} income\n"
+                f"**Top Category:** {monthly['top_category']}")
+    
+    # Unusual spending
+    if any(w in q for w in ["unusual", "pattern", "detect", "abnormal"]):
         unusual = AnalyticsService.detect_unusual_spending()
         if unusual:
-            response_parts.append("🚨 **Unusual Spending Patterns Detected:**\n")
+            lines = ["🚨 **Unusual Spending Found:**"]
             for item in unusual:
-                if item["type"] == "overspend":
-                    response_parts.append(
-                        f"⚠️ **{item['category']}**: {item['deviation']:.0f}% **higher** than usual! "
-                        f"(Current: {format_currency(item['current'])} vs "
-                        f"Avg: {format_currency(item['average'])})"
-                    )
-                else:
-                    response_parts.append(
-                        f"✅ **{item['category']}**: {abs(item['deviation']):.0f}% **lower** than usual! "
-                        f"(Current: {format_currency(item['current'])} vs "
-                        f"Avg: {format_currency(item['average'])})"
-                    )
-        else:
-            response_parts.append("✅ **No unusual patterns detected.** Your spending looks consistent.")
-            response_parts.append(
-                "\n💡 Add more transactions to get better spending pattern analysis."
-            )
-
-    # Handle "predict" / "future" questions
-    elif any(word in question_lower for word in ["predict", "future", "forecast", "next month"]):
-        if not expense_df.empty:
-            monthly_avg = total_expenses / max(len(expense_df["month"].unique()), 1)
-            response_parts.append(f"📊 **Based on your history:**")
-            response_parts.append(f"- Average monthly spending: {format_currency(monthly_avg)}")
-            response_parts.append(f"- Current month: {format_currency(monthly['total_expense'])}")
-            
-            if monthly['total_expense'] > monthly_avg:
-                response_parts.append(f"\n⚠️ You're spending **{((monthly['total_expense']/monthly_avg)-1)*100:.0f}% more** "
-                                      f"than average this month.")
-            else:
-                response_parts.append(f"\n✅ You're spending **{((1-monthly['total_expense']/monthly_avg))*100:.0f}% less** "
-                                      f"than average this month. Keep it up!")
-        else:
-            response_parts.append("📊 Add some expenses first to get spending predictions.")
-
-    # Handle "health" / "score" questions
-    elif any(word in question_lower for word in ["health", "score", "rating", "good"]):
-        # Calculate a simple financial health score
+                emoji = "⚠️ Higher" if item["type"] == "overspend" else "✅ Lower"
+                lines.append(f"{emoji} **{item['category']}**: {abs(item['deviation']):.0f}% vs normal "
+                             f"(Now: {format_currency(item['current'])}, Avg: {format_currency(item['average'])})")
+            return "\n".join(lines)
+        return "✅ No unusual patterns. Your spending looks consistent!"
+    
+    # Health score
+    if any(w in q for w in ["health", "score", "rating"]):
         expense_ratio = (total_expenses / total_income * 100) if total_income > 0 else 100
-        categories_used = len(category_data)
-        
         score = 100
-        if expense_ratio > 80:
-            score -= 30
-        elif expense_ratio > 60:
-            score -= 15
-        elif expense_ratio > 40:
-            score -= 5
-        
-        if categories_used <= 2:
-            score -= 10
-        if monthly['expense_count'] == 0:
-            score -= 20
-            
+        if expense_ratio > 80: score -= 30
+        elif expense_ratio > 60: score -= 15
+        elif expense_ratio > 40: score -= 5
+        if len(category_data) <= 2: score -= 10
+        if monthly['expense_count'] == 0: score -= 20
         score = max(0, min(100, score))
         
-        response_parts.append(f"**🏆 Financial Health Score: {score}/100**\n")
-        
-        if score >= 80:
-            response_parts.append("🌟 **Excellent!** Your finances are in great shape!")
-        elif score >= 60:
-            response_parts.append("👍 **Good!** Some room for improvement.")
-        elif score >= 40:
-            response_parts.append("⚠️ **Fair.** Consider reviewing your spending habits.")
-        else:
-            response_parts.append("🚨 **Needs attention.** Time to create a budget plan!")
-        
-        response_parts.append(f"\n**Breakdown:**")
-        response_parts.append(f"- Expense-to-Income Ratio: {expense_ratio:.1f}%")
-        response_parts.append(f"- Active Categories: {categories_used}")
-        response_parts.append(f"- Monthly Transactions: {monthly['expense_count']}")
-
-    # Handle "food" / specific category questions
-    elif any(word in question_lower for word in ["food", "transport", "shopping", "entertainment", "health",
-                                                   "education", "bills", "investment"]):
-        # Find which category they're asking about
-        target_cat = None
-        for cat in ["Food", "Transport", "Shopping", "Entertainment", "Health", 
-                    "Education", "Bills", "Investment"]:
-            if cat.lower() in question_lower:
-                target_cat = cat
+        rating = "🌟 Excellent!" if score >= 80 else "👍 Good!" if score >= 60 else "⚠️ Fair" if score >= 40 else "🚨 Needs attention"
+        return (f"**🏆 Financial Health: {score}/100** {rating}\n\n"
+                f"• Expense Ratio: {expense_ratio:.0f}%\n"
+                f"• Active Categories: {len(category_data)}\n"
+                f"• Monthly Transactions: {monthly['expense_count']}")
+    
+    # Food/category specific
+    if any(w in q for w in ["food", "transport", "shopping", "entertainment", "health", "education", "bills"]):
+        target = None
+        for cat in ["Food", "Transport", "Shopping", "Entertainment", "Health", "Education", "Bills"]:
+            if cat.lower() in q:
+                target = cat
                 break
-        
-        if target_cat and target_cat in category_data:
-            cat_total = category_data[target_cat]
-            cat_pct = (cat_total / total_expenses * 100) if total_expenses > 0 else 0
-            
-            # Get recent expenses in this category
-            cat_expenses = [e for e in ExpenseRepository.get_all_expenses() 
-                          if e.category == target_cat][:5]
-            
-            response_parts.append(f"**📊 {target_cat} Spending Analysis:**")
-            response_parts.append(f"- **Total spent on {target_cat}:** {format_currency(cat_total)}")
-            response_parts.append(f"- **Percentage of total:** {cat_pct:.1f}%")
-            
-            if cat_expenses:
-                response_parts.append(f"\n**Recent {target_cat} transactions:**")
-                for e in cat_expenses[:5]:
-                    response_parts.append(f"  • {e.date}: {e.description} - {format_currency(e.amount)}")
-        else:
-            response_parts.append(f"I couldn't find spending data for that category.")
-            response_parts.append(f"**Your categories:** {', '.join(category_data.keys())}")
-
-    # Default response for other questions
-    else:
-        response_parts.append(f"**Total Income:** {format_currency(total_income)}")
-        response_parts.append(f"**Total Expenses:** {format_currency(total_expenses)}")
-        response_parts.append(f"**Savings:** {format_currency(savings)}")
-        response_parts.append(f"**Savings Rate:** {savings_rate:.1f}%")
-        response_parts.append(f"**Monthly Transactions:** {monthly['expense_count']}")
-        response_parts.append(f"\n💡 Try asking:\n"
-                              f"- \"Where am I spending the most?\"\n"
-                              f"- \"How can I save money?\"\n"
-                              f"- \"What's my financial health score?\"")
-
-    return "\n".join(response_parts)
-
+        if target and target in category_data:
+            amt = category_data[target]
+            pct = (amt / total_expenses * 100) if total_expenses > 0 else 0
+            recent = ExpenseRepository.get_expenses_by_category(target)[:3]
+            lines = [f"**📊 {target} Spending**",
+                     f"Total: {format_currency(amt)} ({pct:.0f}% of all expenses)"]
+            if recent:
+                lines.append("\n**Recent:**")
+                for e in recent:
+                    lines.append(f"• {e.date}: {e.description} - {format_currency(e.amount)}")
+            return "\n".join(lines)
+        return f"Couldn't find spending data for that category."
+    
+    # Predictions
+    if any(w in q for w in ["predict", "future", "forecast", "next month"]):
+        df = AnalyticsService.get_expenses_dataframe()
+        if not df.empty:
+            months = len(df["month"].unique()) or 1
+            avg = total_expenses / months
+            diff = ((monthly['total_expense'] / avg) - 1) * 100 if avg > 0 else 0
+            trend = f"⚠️ {diff:.0f}% higher" if diff > 0 else f"✅ {abs(diff):.0f}% lower"
+            return (f"📊 **Spending Forecast**\n\n"
+                    f"• Monthly Average: {format_currency(avg)}\n"
+                    f"• Current Month: {format_currency(monthly['total_expense'])}\n"
+                    f"• Trend: You're spending **{trend}** than average")
+        return "Add some expenses first to get predictions!"
+    
+    # Default
+    return (f"**💰 Your Finances at a Glance**\n\n"
+            f"**Income:** {format_currency(total_income)}\n"
+            f"**Expenses:** {format_currency(total_expenses)}\n"
+            f"**Savings:** {format_currency(savings)} ({savings_rate:.0f}%)\n\n"
+            f"💡 Try asking:\n"
+            f"• \"Where am I spending the most?\"\n"
+            f"• \"How can I save money?\"\n"
+            f"• \"What's my financial health score?\"")
