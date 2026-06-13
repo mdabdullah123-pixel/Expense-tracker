@@ -99,7 +99,7 @@ def render_add_expense():
         with ai_col2:
             suggest_button = st.form_submit_button(
                 "✨ Suggest",
-                use_container_width=True,
+                width="stretch",
                 type="secondary",
             )
 
@@ -120,7 +120,7 @@ def render_add_expense():
         st.markdown("---")
         submitted = st.form_submit_button(
             "✅ Add Expense",
-            use_container_width=True,
+            width="stretch",
             type="primary",
         )
 
@@ -176,7 +176,7 @@ def render_add_income():
         st.markdown("---")
         submitted = st.form_submit_button(
             "✅ Add Income",
-            use_container_width=True,
+            width="stretch",
             type="primary",
         )
 
@@ -368,7 +368,7 @@ def render_receipt_scanner():
 
                         submitted = st.form_submit_button(
                             "✅ Add from Receipt",
-                            use_container_width=True,
+                            width="stretch",
                             type="primary",
                         )
 

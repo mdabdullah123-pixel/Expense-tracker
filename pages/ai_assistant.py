@@ -78,7 +78,7 @@ def render_ai_assistant():
 
     for i, question in enumerate(quick_questions):
         col = quick_cols[i % 2]
-        if col.button(question, use_container_width=True, key=f"quick_{i}"):
+        if col.button(question, width="stretch", key=f"quick_{i}"):
             # Add question to chat and process
             st.session_state.chat_history.append({
                 "role": "user",
@@ -129,7 +129,7 @@ def render_ai_assistant():
                 key="user_question_input",
             )
         with col2:
-            submitted = st.form_submit_button("Send 📤", use_container_width=True)
+            submitted = st.form_submit_button("Send 📤", width="stretch")
 
         if submitted and user_question:
             # Add to chat history
@@ -144,7 +144,7 @@ def render_ai_assistant():
     # Example questions dropdown
     with st.expander("💡 Need ideas? Try these questions"):
         for q in EXAMPLE_QUESTIONS:
-            if st.button(q, key=f"example_{q}", use_container_width=True):
+            if st.button(q, key=f"example_{q}", width="stretch"):
                 st.session_state.chat_history.append({
                     "role": "user",
                     "content": q,
@@ -155,7 +155,7 @@ def render_ai_assistant():
 
     # Clear chat button
     if st.session_state.chat_history:
-        if st.button("🗑️ Clear Chat History", use_container_width=True, type="secondary"):
+        if st.button("🗑️ Clear Chat History", width="stretch", type="secondary"):
             st.session_state.chat_history = []
             st.rerun()
 

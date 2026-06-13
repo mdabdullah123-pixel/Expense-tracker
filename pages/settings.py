@@ -170,7 +170,7 @@ def render_settings():
     col1, col2 = st.columns(2)
 
     with col1:
-        if st.button("🔌 Test Connection", use_container_width=True, type="secondary"):
+        if st.button("🔌 Test Connection", width="stretch", type="secondary"):
             if not api_key and not is_local:
                 st.error("Please enter an API key for the selected provider.")
             else:
@@ -198,7 +198,7 @@ def render_settings():
                         st.error(f"❌ {message}")
 
     with col2:
-        if st.button("💾 Save Configuration", use_container_width=True, type="primary"):
+        if st.button("💾 Save Configuration", width="stretch", type="primary"):
             # Store in session state
             if is_local:
                 st.session_state.ollama_url = ollama_url
