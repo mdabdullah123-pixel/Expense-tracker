@@ -231,7 +231,7 @@ def generate_sample_data(num_expenses: int = 100, num_income: int = 12):
     logger.info(
         "Sample data generated: %d expenses, %d income records",
         expenses_created,
-        income_created, 
+        income_created,
     )
 
     return expenses_created, income_created
