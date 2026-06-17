@@ -1,4 +1,4 @@
-# AI-Powered Expense Tracker - Dependencies
+# AI-Powered Expense Tracker - Dependencies 
 
 # Web Framework
 streamlit
