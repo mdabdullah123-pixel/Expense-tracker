@@ -1,0 +1,798 @@
+From 45f593d73c77635a8f308bc1c0014cfcf5dfa79b Mon Sep 17 00:00:00 2001
+From: Akmal_786 <akmaluddin78604@gmail.com>
+Date: Thu, 18 Jun 2026 15:55:50 +0530
+Subject: [PATCH] chore: add compliance tooling
+
+---
+ .flake8                              |   9 +
+ .gitlab-ci.yml                       |  83 ++++++++++
+ .pre-commit-config.yaml              |  63 +++++++
+ .pylintrc                            |   8 +
+ .specify/memory/constitution.md      |  33 ++++
+ .specify/templates/plan-template.md  |  25 +++
+ .specify/templates/spec-template.md  |  19 +++
+ .specify/templates/tasks-template.md |   9 +
+ CHANGELOG.md                         |  20 ++-
+ LICENSE                              |  14 ++
+ README.md                            | 237 +++++++++++++--------------
+ cliff.toml                           |  28 ++++
+ constitution.md                      |   3 +
+ pyproject.toml                       |  53 ++++++
+ requirements.txt                     |  14 ++
+ specs/expense-tracker/spec.md        |  39 +++++
+ 16 files changed, 526 insertions(+), 131 deletions(-)
+ create mode 100644 .flake8
+ create mode 100644 .gitlab-ci.yml
+ create mode 100644 .pre-commit-config.yaml
+ create mode 100644 .pylintrc
+ create mode 100644 .specify/memory/constitution.md
+ create mode 100644 .specify/templates/plan-template.md
+ create mode 100644 .specify/templates/spec-template.md
+ create mode 100644 .specify/templates/tasks-template.md
+ create mode 100644 LICENSE
+ create mode 100644 cliff.toml
+ create mode 100644 constitution.md
+ create mode 100644 pyproject.toml
+ create mode 100644 specs/expense-tracker/spec.md
+
+diff --git a/.flake8 b/.flake8
+new file mode 100644
+index 0000000..48bb321
+--- /dev/null
++++ b/.flake8
+@@ -0,0 +1,9 @@
++[flake8]
++max-line-length = 88
++extend-ignore = E203,W503
++exclude =
++    .git,
++    .venv,
++    __pycache__,
++    build,
++    dist
+diff --git a/.gitlab-ci.yml b/.gitlab-ci.yml
+new file mode 100644
+index 0000000..a097b8e
+--- /dev/null
++++ b/.gitlab-ci.yml
+@@ -0,0 +1,83 @@
++stages:
++  - quality
++  - security
++  - test
++
++variables:
++  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
++
++default:
++  image: python:3.11-slim
++  before_script:
++    - python -m pip install --upgrade pip
++    - pip install -r requirements.txt
++
++cache:
++  paths:
++    - .cache/pip
++
++ruff:
++  stage: quality
++  script:
++    - ruff check .
++    - ruff format --check .
++
++mypy:
++  stage: quality
++  script:
++    - mypy .
++
++pylint:
++  stage: quality
++  script:
++    - pylint app.py database pages services utils
++
++flake8:
++  stage: quality
++  script:
++    - flake8 .
++
++vulture:
++  stage: quality
++  script:
++    - vulture .
++
++pyupgrade:
++  stage: quality
++  script:
++    - pyupgrade --py311-plus app.py database/*.py pages/*.py services/*.py utils/*.py tests/*.py
++
++semgrep:
++  stage: security
++  script:
++    - semgrep --config=auto --error .
++
++bandit:
++  stage: security
++  script:
++    - bandit -r .
++
++secret-scanning:
++  stage: security
++  image:
++    name: zricethezav/gitleaks:latest
++    entrypoint: [""]
++  before_script: []
++  script:
++    - gitleaks detect --source . --verbose
++
++dependency-audit:
++  stage: security
++  script:
++    - pip-audit
++
++pytest:
++  stage: test
++  script:
++    - pytest
++  coverage: '/TOTAL.*\s+(\d+%)$/'
++  artifacts:
++    reports:
++      coverage_report:
++        coverage_format: cobertura
++        path: coverage.xml
+diff --git a/.pre-commit-config.yaml b/.pre-commit-config.yaml
+new file mode 100644
+index 0000000..ed3985e
+--- /dev/null
++++ b/.pre-commit-config.yaml
+@@ -0,0 +1,63 @@
++repos:
++  - repo: https://github.com/pre-commit/pre-commit-hooks
++    rev: v5.0.0
++    hooks:
++      - id: check-added-large-files
++      - id: check-ast
++      - id: check-merge-conflict
++      - id: debug-statements
++      - id: end-of-file-fixer
++      - id: trailing-whitespace
++
++  - repo: https://github.com/astral-sh/ruff-pre-commit
++    rev: v0.8.4
++    hooks:
++      - id: ruff
++        args: ["--fix"]
++      - id: ruff-format
++
++  - repo: https://github.com/pre-commit/mirrors-mypy
++    rev: v1.14.1
++    hooks:
++      - id: mypy
++        additional_dependencies:
++          - types-requests
++
++  - repo: https://github.com/PyCQA/bandit
++    rev: 1.8.0
++    hooks:
++      - id: bandit
++        args: ["-r", "."]
++
++  - repo: https://github.com/PyCQA/flake8
++    rev: 7.1.1
++    hooks:
++      - id: flake8
++
++  - repo: https://github.com/PyCQA/pylint
++    rev: v3.3.3
++    hooks:
++      - id: pylint
++        args: ["app.py", "database", "pages", "services", "utils"]
++
++  - repo: https://github.com/asottile/pyupgrade
++    rev: v3.19.1
++    hooks:
++      - id: pyupgrade
++        args: ["--py311-plus"]
++
++  - repo: https://github.com/gitleaks/gitleaks
++    rev: v8.22.1
++    hooks:
++      - id: gitleaks
++
++  - repo: https://github.com/jendrikseipp/vulture
++    rev: v2.14
++    hooks:
++      - id: vulture
++
++  - repo: https://github.com/semgrep/pre-commit
++    rev: v1.99.0
++    hooks:
++      - id: semgrep
++        args: ["--config=auto", "--error"]
+diff --git a/.pylintrc b/.pylintrc
+new file mode 100644
+index 0000000..30a6e2f
+--- /dev/null
++++ b/.pylintrc
+@@ -0,0 +1,8 @@
++[MAIN]
++ignore=.venv
++
++[MESSAGES CONTROL]
++disable=missing-module-docstring,missing-function-docstring,too-few-public-methods
++
++[FORMAT]
++max-line-length=88
+diff --git a/.specify/memory/constitution.md b/.specify/memory/constitution.md
+new file mode 100644
+index 0000000..93f7a6d
+--- /dev/null
++++ b/.specify/memory/constitution.md
+@@ -0,0 +1,33 @@
++# AI Expense Tracker Constitution
++
++## Principles
++
++### User Control
++
++Users own their financial data and must be able to review, edit, and delete
++records without depending on an AI provider.
++
++### Privacy By Default
++
++The application must not commit secrets, API keys, local databases, generated
++reports, or private receipts. Cloud AI integrations must remain optional.
++
++### Tested Financial Logic
++
++Changes to persistence, calculations, categorization, reports, and exports must
++include automated tests where practical.
++
++### Accessible Operation
++
++Core workflows must remain understandable without requiring technical knowledge
++or AI-specific configuration.
++
++### Automation First
++
++Quality checks, tests, static analysis, secret scanning, and dependency audits
++must be runnable in CI and through pre-commit hooks.
++
++## Governance
++
++This constitution guides feature specifications, plans, and review decisions.
++Changes require updating related specs, templates, and documentation.
+diff --git a/.specify/templates/plan-template.md b/.specify/templates/plan-template.md
+new file mode 100644
+index 0000000..be48efa
+--- /dev/null
++++ b/.specify/templates/plan-template.md
+@@ -0,0 +1,25 @@
++# Implementation Plan: [FEATURE NAME]
++
++## Scope
++
++- In scope:
++- Out of scope:
++
++## Technical Approach
++
++- Data model changes:
++- UI changes:
++- Service changes:
++- Test coverage:
++
++## Risks
++
++- Privacy:
++- Security:
++- Regression:
++
++## Verification
++
++- Unit tests:
++- Manual checks:
++- CI checks:
+diff --git a/.specify/templates/spec-template.md b/.specify/templates/spec-template.md
+new file mode 100644
+index 0000000..58a872d
+--- /dev/null
++++ b/.specify/templates/spec-template.md
+@@ -0,0 +1,19 @@
++# Feature Specification: [FEATURE NAME]
++
++## User Stories
++
++- As a user, I want [goal] so that [benefit].
++
++## Requirements
++
++- The system must [requirement].
++- The system must protect user financial data and secrets.
++
++## Acceptance Criteria
++
++- Given [context], when [action], then [outcome].
++
++## Non-Functional Requirements
++
++- Tests cover critical financial logic.
++- CI quality and security checks pass.
+diff --git a/.specify/templates/tasks-template.md b/.specify/templates/tasks-template.md
+new file mode 100644
+index 0000000..17dac80
+--- /dev/null
++++ b/.specify/templates/tasks-template.md
+@@ -0,0 +1,9 @@
++# Tasks: [FEATURE NAME]
++
++- [ ] Update specification.
++- [ ] Implement data/model changes.
++- [ ] Implement service logic.
++- [ ] Implement Streamlit UI changes.
++- [ ] Add or update tests.
++- [ ] Update documentation.
++- [ ] Run quality, security, and test checks.
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index bf4937f..47057fd 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -2,12 +2,14 @@
+ 
+ All notable changes to this project will be documented in this file.
+ 
+-## [1.0.0] - 2026-06-18
+-
+-### Added
+-
+-* Initial release of SpeakWiseAI
+-* Speech analysis functionality
+-* AI-powered feedback generation
+-* Streamlit web interface
+-* Audio processing and evaluation features
++## [1.0.0] - 2026-06-18
++
++### Added
++
++* Initial release of AI Expense Tracker
++* Expense and income tracking with SQLite persistence
++* Dashboard charts and financial summaries
++* AI-powered categorization, report generation, and assistant features
++* Optional Ollama, OpenAI, Gemini, and OpenRouter providers
++* Streamlit web interface
++* Receipt text parsing workflow
+diff --git a/LICENSE b/LICENSE
+new file mode 100644
+index 0000000..761952a
+--- /dev/null
++++ b/LICENSE
+@@ -0,0 +1,14 @@
++GNU Affero General Public License v3.0
++
++Copyright (C) 2026 Md Abdullah
++
++This project is free software: you can redistribute it and/or modify it under
++the terms of the GNU Affero General Public License as published by the Free
++Software Foundation, either version 3 of the License, or any later version.
++
++This project is distributed in the hope that it will be useful, but WITHOUT ANY
++WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
++PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
++
++You should have received a copy of the GNU Affero General Public License along
++with this project. If not, see <https://www.gnu.org/licenses/>.
+diff --git a/README.md b/README.md
+index 89dbc7c..89e49dc 100644
+--- a/README.md
++++ b/README.md
+@@ -1,122 +1,115 @@
+-# Project Name
+-
+-A brief one-line description of your project.
+-
+-## Overview
+-
+-Project Name is designed to help users solve a specific problem through an intuitive and efficient solution.
+-
+-## Features
+-
+-* Feature 1
+-* Feature 2
+-* Feature 3
+-* Easy-to-use interface
+-* Fast and reliable performance
+-
+-## Tech Stack
+-
+-* Python
+-* Streamlit / Flask / FastAPI
+-* HTML, CSS, JavaScript
+-* Other libraries used in the project
+-
+-## Installation
+-
+-### Clone the Repository
+-
+-```bash
+-git clone https://github.com/your-username/your-repository.git
+-cd your-repository
+-```
+-
+-### Create a Virtual Environment
+-
+-```bash
+-python -m venv venv
+-```
+-
+-Activate it:
+-
+-**Windows**
+-
+-```bash
+-venv\Scripts\activate
+-```
+-
+-**Linux/macOS**
+-
+-```bash
+-source venv/bin/activate
+-```
+-
+-### Install Dependencies
+-
+-```bash
+-pip install -r requirements.txt
+-```
+-
+-## Usage
+-
+-Run the application:
+-
+-```bash
+-python app.py
+-```
+-
+-Or if using Streamlit:
+-
+-```bash
+-streamlit run app.py
+-```
+-
+-Open the provided local URL in your browser.
+-
+-## Project Structure
+-
+-```text
+-project/
+-├── app.py
+-├── requirements.txt
+-├── README.md
+-├── USER_MANUAL.md
+-├── CONTRIBUTING.md
+-├── AGENTS.md
+-├── LICENSE
+-└── src/
+-```
+-
+-## Screenshots
+-
+-Add screenshots or GIFs demonstrating the application here.
+-
+-## Configuration
+-
+-Create a `.env` file if required:
+-
+-```env
+-API_KEY=your_api_key
+-```
+-
+-## Future Improvements
+-
+-* Add more features
+-* Improve performance
+-* Enhance UI/UX
+-* Expand platform support
+-
+-## Contributing
+-
+-Contributions are welcome. Please read CONTRIBUTING.md before submitting pull requests.
+-
+-## License
+-
+-This project is licensed under the MIT License.
+-
+-## Authors
+-
+-Developed by [Your Name].
+-
+-## Acknowledgments
+-
+-Special thanks to contributors, mentors, and the open-source community for their support.
++# AI Expense Tracker
++
++AI Expense Tracker is a Streamlit application for tracking income, expenses,
++budgets, and financial trends. It combines a local SQLite database with optional
++AI providers so users can categorize spending, ask finance questions, generate
++reports, and parse receipt text.
++
++## Features
++
++- Add, view, update, and delete expenses and income records.
++- View dashboard metrics and Plotly charts for spending patterns.
++- Generate weekly and monthly reports from stored transactions.
++- Configure local Ollama or cloud AI providers such as OpenAI, Gemini, and
++  OpenRouter.
++- Parse receipt text and suggest expense categories.
++- Export reports as PDF files.
++
++## Tech Stack
++
++- Python 3.11
++- Streamlit
++- SQLAlchemy and SQLite
++- Pandas and NumPy
++- Plotly
++- Pytest and pytest-cov
++- Ruff, Mypy, Bandit, Semgrep, Vulture, Pylint, Flake8, and Pyupgrade
++
++## Installation
++
++```bash
++git clone https://code.swecha.org/Abdullah_285/expense-tracker.git
++cd expense-tracker
++python -m venv .venv
++.venv\Scripts\activate
++pip install -r requirements.txt
++```
++
++On Linux or macOS, activate the virtual environment with:
++
++```bash
++source .venv/bin/activate
++```
++
++## Configuration
++
++Copy the example environment file and add only the providers you plan to use:
++
++```bash
++cp .env.example .env
++```
++
++All AI integrations are optional. Ollama can run locally without an API key.
++Cloud providers require their own keys.
++
++## Usage
++
++```bash
++streamlit run app.py
++```
++
++Then open the local Streamlit URL shown in the terminal.
++
++## Testing And Quality
++
++Run the test suite:
++
++```bash
++pytest
++```
++
++Run the configured quality checks locally:
++
++```bash
++ruff check .
++ruff format --check .
++mypy .
++bandit -r .
++pip-audit
++```
++
++Pre-commit hooks are configured in `.pre-commit-config.yaml`.
++
++## Project Structure
++
++```text
++expense-tracker/
++├── app.py
++├── database/
++├── pages/
++├── services/
++├── tests/
++├── utils/
++├── .gitlab-ci.yml
++├── .pre-commit-config.yaml
++├── pyproject.toml
++├── requirements.txt
++└── README.md
++```
++
++## Documentation
++
++- `USER_MANUAL.md` explains the user workflow.
++- `CONTRIBUTING.md` explains contribution expectations.
++- `SECURITY.md` explains vulnerability reporting.
++- `AGENTS.md` gives guidance for automated contributors.
++- `specs/expense-tracker/spec.md` records the current product specification.
++
++## License
++
++This project is licensed under the GNU Affero General Public License v3.0.
++See `LICENSE` for details.
++
++## Author
++
++Developed by Md Abdullah.
+diff --git a/cliff.toml b/cliff.toml
+new file mode 100644
+index 0000000..c95bf75
+--- /dev/null
++++ b/cliff.toml
+@@ -0,0 +1,28 @@
++[changelog]
++header = "# Changelog\n\nAll notable changes to this project are documented here.\n\n"
++body = """
++{% if version %}\
++## [{{ version | trim_start_matches(pat="v") }}] - {{ timestamp | date(format="%Y-%m-%d") }}
++{% else %}\
++## Unreleased
++{% endif %}\
++{% for group, commits in commits | group_by(attribute="group") %}
++
++### {{ group | striptags | trim | upper_first }}
++{% for commit in commits %}
++- {{ commit.message | upper_first }}
++{% endfor %}
++{% endfor %}\n
++"""
++trim = true
++
++[git]
++conventional_commits = true
++filter_unconventional = false
++split_commits = false
++commit_parsers = [
++  { message = "^feat", group = "Added" },
++  { message = "^fix", group = "Fixed" },
++  { message = "^docs", group = "Documentation" },
++  { message = "^security", group = "Security" },
++]
+diff --git a/constitution.md b/constitution.md
+new file mode 100644
+index 0000000..415e315
+--- /dev/null
++++ b/constitution.md
+@@ -0,0 +1,3 @@
++# AI Expense Tracker Constitution
++
++See `.specify/memory/constitution.md` for the active Spec-Kit constitution.
+diff --git a/pyproject.toml b/pyproject.toml
+new file mode 100644
+index 0000000..5b06628
+--- /dev/null
++++ b/pyproject.toml
+@@ -0,0 +1,53 @@
++[project]
++name = "expense-tracker"
++version = "1.0.0"
++description = "AI-powered expense tracker built with Streamlit."
++readme = "README.md"
++requires-python = ">=3.11"
++license = { text = "AGPL-3.0-or-later" }
++authors = [{ name = "Md Abdullah" }]
++
++[tool.ruff]
++target-version = "py311"
++line-length = 88
++
++[tool.ruff.lint]
++select = ["E", "F", "I", "B", "UP", "SIM", "RUF"]
++ignore = ["E501"]
++
++[tool.mypy]
++python_version = "3.11"
++ignore_missing_imports = true
++warn_unused_ignores = true
++warn_redundant_casts = true
++warn_unused_configs = true
++exclude = ["\\.venv", "build", "dist"]
++
++[tool.pytest.ini_options]
++testpaths = ["tests"]
++addopts = "--cov=. --cov-report=term-missing --cov-report=xml --cov-fail-under=70"
++
++[tool.coverage.run]
++branch = true
++source = ["."]
++omit = [
++    "tests/*",
++    ".venv/*",
++]
++
++[tool.coverage.report]
++show_missing = true
++fail_under = 70
++
++[tool.bandit]
++exclude_dirs = ["tests", ".venv"]
++skips = ["B101"]
++
++[tool.pylint.main]
++ignore = [".venv"]
++disable = ["missing-module-docstring", "missing-function-docstring"]
++
++[tool.vulture]
++paths = ["."]
++exclude = [".venv", "tests"]
++min_confidence = 80
+diff --git a/requirements.txt b/requirements.txt
+index 1015f45..17a150d 100644
+--- a/requirements.txt
++++ b/requirements.txt
+@@ -35,5 +35,19 @@ markdown
+ pytest
+ pytest-cov
+ 
++# Quality & Static Analysis
++ruff
++mypy
++pylint
++flake8
++vulture
++pyupgrade
++
++# Security & Auditing
++bandit
++semgrep
++pip-audit
++pre-commit
++
+ # Utilities
+ pydantic
+diff --git a/specs/expense-tracker/spec.md b/specs/expense-tracker/spec.md
+new file mode 100644
+index 0000000..b50ead9
+--- /dev/null
++++ b/specs/expense-tracker/spec.md
+@@ -0,0 +1,39 @@
++# Feature Specification: AI Expense Tracker
++
++## Overview
++
++AI Expense Tracker helps users record income and expenses, understand spending
++patterns, generate financial reports, and optionally use AI providers for
++categorization and personal finance assistance.
++
++## User Stories
++
++- As a user, I can add income and expense records so my finances stay organized.
++- As a user, I can review dashboards and reports so I understand trends.
++- As a user, I can configure an AI provider so categorization and advice are
++  available when I choose to enable them.
++- As a privacy-conscious user, I can use the core tracker without cloud AI keys.
++
++## Functional Requirements
++
++- Store expenses, income, and settings in SQLite through SQLAlchemy models.
++- Display dashboard metrics and visualizations in Streamlit.
++- Provide pages for expenses, reports, AI assistant, and settings.
++- Support optional AI providers: Ollama, OpenAI, Gemini, and OpenRouter.
++- Parse receipt text into structured expense suggestions.
++- Generate PDF reports from financial data.
++
++## Quality Requirements
++
++- Run tests with Pytest and coverage reporting.
++- Run linting, formatting, type checking, static analysis, secret scanning, and
++  dependency audit in CI.
++- Keep API keys in environment variables and document them only in
++  `.env.example`.
++
++## Acceptance Criteria
++
++- A fresh clone can install dependencies from `requirements.txt`.
++- `streamlit run app.py` starts the application.
++- `pytest` runs the automated tests with a coverage threshold.
++- `.gitlab-ci.yml` runs quality, security, and test stages.
+-- 
+2.54.0.windows.1
+
