@@ -1,0 +1,19 @@
+title = "Gitleaks configuration"
+
+[[rules]]
+  id = "Generic API Key"
+  regex = '''(?i)(?:api_key|apikey|api-key|secret|token)\s*[:=]\s*['\"]?[A-Za-z0-9_\-]{20,}['\"]?'''
+  description = "Possible generic API key or token"
+  tags = ["apikey", "secret"]
+
+[[rules]]
+  id = "AWS Access Key"
+  regex = '''AKIA[0-9A-Z]{16}'''
+  description = "AWS access key"
+  tags = ["aws"]
+
+[[rules]]
+  id = "Slack Token"
+  regex = '''xox[baprs]-[0-9a-zA-Z]{10,48}'''
+  description = "Slack token"
+  tags = ["slack"]

@@ -1,0 +1,31 @@
+stages:
+  - lint
+  - test
+  - release
+
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  PIP_DISABLE_PIP_VERSION_CHECK: "1"
+
+before_script:
+  - python -m pip install --upgrade pip
+  - pip install pre-commit cliff
+
+lint:
+  stage: lint
+  script:
+    - pre-commit run --all-files
+
+test:
+  stage: test
+  script:
+    - pip install -r requirements.txt
+    - pytest
+
+release:
+  stage: release
+  script:
+    - pip install cliff
+    - cliff --config cliff.toml
+  only:
+    - main

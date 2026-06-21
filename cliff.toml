@@ -1,0 +1,13 @@
+[repository]
+name = "expense-tracker"
+
+[settings]
+project = "Expense Tracker"
+version = "1.0.0"
+
+[conventional_commits]
+enabled = true
+
+[output]
+format = "markdown"
+file = "CHANGELOG.md"
