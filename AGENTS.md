@@ -223,7 +223,7 @@ To add a new AI provider:
 3. Register the provider in `services/ai_service.py`:
    ```python
    from services.anthropic_service import AnthropicService
-   
+
    class AIService:
        PROVIDERS = {
            "ollama": OllamaService,

@@ -37,3 +37,15 @@ pytest-cov
 
 # Utilities
 pydantic
+
+# Quality & Static Analysis
+ruff
+mypy
+pylint
+flake8
+vulture
+pyupgrade
+semgrep
+
+# Security & Auditing
+bandit
