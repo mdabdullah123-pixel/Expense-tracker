@@ -49,3 +49,5 @@ semgrep
 
 # Security & Auditing
 bandit
+pip-audit
+detect-secrets

@@ -50,3 +50,19 @@ repos:
     rev: v2.14
     hooks:
       - id: vulture
+
+  - repo: local
+    hooks:
+      - id: pip-audit
+        name: pip-audit
+        entry: pip-audit
+        language: python
+        additional_dependencies: [pip-audit]
+        pass_filenames: false
+      - id: detect-secrets
+        name: detect-secrets
+        entry: detect-secrets
+        language: python
+        additional_dependencies: [detect-secrets]
+        pass_filenames: false
+        args: ["scan", "--all-files", "--exclude-files", ".venv/.*"]

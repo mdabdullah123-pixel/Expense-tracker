@@ -13,6 +13,7 @@ data/app.log
 
 # Environment
 .env
+.venv/
 
 # IDE
 .vscode/
