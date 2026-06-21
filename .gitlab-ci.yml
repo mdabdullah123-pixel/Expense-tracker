@@ -16,11 +16,29 @@ lint:
   script:
     - pre-commit run --all-files
 
+format:
+  stage: lint
+  script:
+    - pre-commit run --all-files
+
+type_check:
+  stage: test
+  script:
+    - python -m pip install -r requirements.txt
+    - python -m pip install pre-commit
+    - pre-commit run mypy --all-files
+
 test:
   stage: test
   script:
     - pip install -r requirements.txt
-    - pytest
+    - pytest --cov=. --cov-report=term-missing --cov-report=xml
+
+coverage:
+  stage: test
+  script:
+    - pip install -r requirements.txt
+    - pytest --cov=. --cov-report=xml
 
 release:
   stage: release

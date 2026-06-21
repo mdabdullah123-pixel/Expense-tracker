@@ -53,6 +53,14 @@ repos:
 
   - repo: local
     hooks:
+      - id: gitleaks
+        name: gitleaks
+        entry: gitleaks detect --source . --config-path .gitleaks.toml
+        language: system
+        pass_filenames: false
+
+  - repo: local
+    hooks:
       - id: pip-audit
         name: pip-audit
         entry: pip-audit
