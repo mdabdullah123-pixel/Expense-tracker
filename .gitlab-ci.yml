@@ -1,3 +1,5 @@
+image: python:3.11-slim
+
 stages:
   - lint
   - test
@@ -6,44 +8,70 @@ stages:
 variables:
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
   PIP_DISABLE_PIP_VERSION_CHECK: "1"
+  PYTHONDONTWRITEBYTECODE: "1"
+  PYTHONUNBUFFERED: "1"
+
+cache:
+  paths:
+    - .cache/pip
 
 before_script:
+  - python --version
   - python -m pip install --upgrade pip
-  - pip install pre-commit cliff
-
-lint:
-  stage: lint
-  script:
-    - pre-commit run --all-files
 
 format:
   stage: lint
   script:
-    - pre-commit run --all-files
+    - python -m pip install ruff
+    - ruff format --check .
+
+lint:
+  stage: lint
+  script:
+    - python -m pip install ruff bandit pip-audit
+    - ruff check .
+    - bandit -r . -x tests,.venv
+    - pip-audit -r requirements.txt
 
 type_check:
   stage: test
   script:
     - python -m pip install -r requirements.txt
-    - python -m pip install pre-commit
-    - pre-commit run mypy --all-files
+    - python -m pip install mypy types-requests
+    - mypy .
 
 test:
   stage: test
   script:
-    - pip install -r requirements.txt
+    - python -m pip install -r requirements.txt
     - pytest --cov=. --cov-report=term-missing --cov-report=xml
+  artifacts:
+    when: always
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
+    paths:
+      - coverage.xml
 
 coverage:
   stage: test
   script:
-    - pip install -r requirements.txt
+    - python -m pip install -r requirements.txt
     - pytest --cov=. --cov-report=xml
+  artifacts:
+    when: always
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
+    paths:
+      - coverage.xml
 
 release:
   stage: release
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
   script:
-    - pip install cliff
-    - cliff --config cliff.toml
-  only:
-    - main
+    - python -m pip install git-cliff
+    - git-cliff --config cliff.toml
