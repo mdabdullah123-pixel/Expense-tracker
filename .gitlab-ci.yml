@@ -1,50 +1,65 @@
-image: python:3.11-slim
-
 stages:
   - lint
   - test
   - release
 
 variables:
-  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
   PIP_DISABLE_PIP_VERSION_CHECK: "1"
   PYTHONDONTWRITEBYTECODE: "1"
   PYTHONUNBUFFERED: "1"
+  UV_CACHE_DIR: "$CI_PROJECT_DIR\\.cache\\uv"
 
 cache:
   paths:
-    - .cache/pip
+    - .cache/uv
+    - .venv
 
 before_script:
-  - python --version
-  - python -m pip install --upgrade pip
+  - |
+    $ErrorActionPreference = "Stop"
+    $uvBin = Join-Path $env:USERPROFILE ".local\bin"
+    if (Test-Path $uvBin) {
+      $env:Path = "$uvBin;$env:Path"
+    }
+    if (-not (Get-Command uv -ErrorAction SilentlyContinue)) {
+      Invoke-RestMethod https://astral.sh/uv/install.ps1 | Invoke-Expression
+      $env:Path = "$uvBin;$env:Path"
+    }
+    uv --version
+    uv python install 3.11
+    uv venv --python 3.11 --seed .venv
+    $venvScripts = Join-Path (Resolve-Path ".venv").Path "Scripts"
+    $env:VIRTUAL_ENV = (Resolve-Path ".venv").Path
+    $env:Path = "$venvScripts;$env:Path"
+    python --version
+    python -m pip install --upgrade pip
 
 format:
   stage: lint
   script:
     - python -m pip install ruff
-    - ruff format --check .
+    - python -m ruff format --check .
 
 lint:
   stage: lint
   script:
     - python -m pip install ruff bandit pip-audit
-    - ruff check .
-    - bandit -r . -x tests,.venv
-    - pip-audit -r requirements.txt
+    - python -m ruff check .
+    - python -m bandit -r . -x tests,.venv
+    - python -m pip_audit -r requirements.txt
 
 type_check:
   stage: test
   script:
     - python -m pip install -r requirements.txt
     - python -m pip install mypy types-requests
-    - mypy .
+    - python -m mypy .
 
 test:
   stage: test
   script:
     - python -m pip install -r requirements.txt
-    - pytest --cov=. --cov-report=term-missing --cov-report=xml
+    - python -m pytest --cov=. --cov-report=term-missing --cov-report=xml
   artifacts:
     when: always
     reports:
@@ -58,7 +73,7 @@ coverage:
   stage: test
   script:
     - python -m pip install -r requirements.txt
-    - pytest --cov=. --cov-report=xml
+    - python -m pytest --cov=. --cov-report=xml
   artifacts:
     when: always
     reports:
@@ -75,3 +90,4 @@ release:
   script:
     - python -m pip install git-cliff
     - git-cliff --config cliff.toml
+  allow_failure: true
