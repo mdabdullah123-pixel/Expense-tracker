@@ -7,12 +7,12 @@ input validation, and SQL injection protection via parameterized queries.
 """
 
 import logging
-from datetime import date, datetime
-from typing import List, Optional, Tuple
-from sqlalchemy import func, extract, desc
+from datetime import date
+
+from sqlalchemy import desc, extract, func
 from sqlalchemy.orm import Session
 
-from database.db import get_db_session, close_session
+from database.db import close_session, get_db_session
 from database.models import Expense, Income, Settings
 
 logger = logging.getLogger(__name__)
@@ -33,11 +33,11 @@ class ExpenseRepository:
         category: str,
         description: str,
         payment_method: str = "Cash",
-        notes: Optional[str] = None,
-    ) -> Optional[Expense]:
+        notes: str | None = None,
+    ) -> Expense | None:
         """
         Add a new expense to the database.
-        
+
         Args:
             expense_date: Date of the expense
             amount: Monetary amount (must be positive)
@@ -45,7 +45,7 @@ class ExpenseRepository:
             description: Brief description
             payment_method: Payment method used
             notes: Optional additional notes
-            
+
         Returns:
             Expense object if successful, None otherwise
         """
@@ -79,10 +79,10 @@ class ExpenseRepository:
             close_session(session)
 
     @staticmethod
-    def get_all_expenses() -> List[Expense]:
+    def get_all_expenses() -> list[Expense]:
         """
         Retrieve all expenses ordered by date descending.
-        
+
         Returns:
             List of Expense objects
         """
@@ -96,13 +96,13 @@ class ExpenseRepository:
             close_session(session)
 
     @staticmethod
-    def get_expense_by_id(expense_id: int) -> Optional[Expense]:
+    def get_expense_by_id(expense_id: int) -> Expense | None:
         """
         Retrieve a single expense by ID.
-        
+
         Args:
             expense_id: The expense ID to look up
-            
+
         Returns:
             Expense object if found, None otherwise
         """
@@ -118,16 +118,16 @@ class ExpenseRepository:
     @staticmethod
     def update_expense(
         expense_id: int,
-        expense_date: Optional[date] = None,
-        amount: Optional[float] = None,
-        category: Optional[str] = None,
-        description: Optional[str] = None,
-        payment_method: Optional[str] = None,
-        notes: Optional[str] = None,
+        expense_date: date | None = None,
+        amount: float | None = None,
+        category: str | None = None,
+        description: str | None = None,
+        payment_method: str | None = None,
+        notes: str | None = None,
     ) -> bool:
         """
         Update an existing expense.
-        
+
         Args:
             expense_id: ID of expense to update
             expense_date: New date (optional)
@@ -136,7 +136,7 @@ class ExpenseRepository:
             description: New description (optional)
             payment_method: New payment method (optional)
             notes: New notes (optional)
-            
+
         Returns:
             True if successful, False otherwise
         """
@@ -178,10 +178,10 @@ class ExpenseRepository:
     def delete_expense(expense_id: int) -> bool:
         """
         Delete an expense by ID.
-        
+
         Args:
             expense_id: ID of expense to delete
-            
+
         Returns:
             True if successful, False otherwise
         """
@@ -204,14 +204,14 @@ class ExpenseRepository:
             close_session(session)
 
     @staticmethod
-    def get_expenses_by_date_range(start_date: date, end_date: date) -> List[Expense]:
+    def get_expenses_by_date_range(start_date: date, end_date: date) -> list[Expense]:
         """
         Get expenses within a date range.
-        
+
         Args:
             start_date: Start of range (inclusive)
             end_date: End of range (inclusive)
-            
+
         Returns:
             List of Expense objects
         """
@@ -230,13 +230,13 @@ class ExpenseRepository:
             close_session(session)
 
     @staticmethod
-    def get_expenses_by_category(category: str) -> List[Expense]:
+    def get_expenses_by_category(category: str) -> list[Expense]:
         """
         Get all expenses for a specific category.
-        
+
         Args:
             category: Category to filter by
-            
+
         Returns:
             List of Expense objects
         """
@@ -258,7 +258,7 @@ class ExpenseRepository:
     def get_total_expenses() -> float:
         """
         Calculate total of all expenses.
-        
+
         Returns:
             Total expense amount as float
         """
@@ -276,11 +276,11 @@ class ExpenseRepository:
     def get_monthly_summary(year: int, month: int) -> dict:
         """
         Get expense summary for a specific month.
-        
+
         Args:
             year: Year (e.g., 2024)
             month: Month (1-12)
-            
+
         Returns:
             Dictionary with total, count, and category breakdown
         """
@@ -296,10 +296,12 @@ class ExpenseRepository:
             )
 
             total = sum(e.amount for e in expenses)
-            category_breakdown = {}
+            category_breakdown: dict[str, float] = {}
             for expense in expenses:
                 cat = expense.category
-                category_breakdown[cat] = category_breakdown.get(cat, 0) + expense.amount
+                category_breakdown[cat] = (
+                    category_breakdown.get(cat, 0) + expense.amount
+                )
 
             return {
                 "total": total,
@@ -314,14 +316,16 @@ class ExpenseRepository:
             close_session(session)
 
     @staticmethod
-    def get_category_totals(start_date: Optional[date] = None, end_date: Optional[date] = None) -> List[Tuple[str, float]]:
+    def get_category_totals(
+        start_date: date | None = None, end_date: date | None = None
+    ) -> list[tuple[str, float]]:
         """
         Get total spending per category, optionally filtered by date range.
-        
+
         Args:
             start_date: Optional start date filter
             end_date: Optional end date filter
-            
+
         Returns:
             List of (category, total_amount) tuples
         """
@@ -358,17 +362,17 @@ class IncomeRepository:
         income_date: date,
         amount: float,
         source: str,
-        notes: Optional[str] = None,
-    ) -> Optional[Income]:
+        notes: str | None = None,
+    ) -> Income | None:
         """
         Add a new income record.
-        
+
         Args:
             income_date: Date income was received
             amount: Monetary amount (must be positive)
             source: Source of income
             notes: Optional notes
-            
+
         Returns:
             Income object if successful, None otherwise
         """
@@ -395,10 +399,10 @@ class IncomeRepository:
             close_session(session)
 
     @staticmethod
-    def get_all_income() -> List[Income]:
+    def get_all_income() -> list[Income]:
         """
         Retrieve all income records ordered by date descending.
-        
+
         Returns:
             List of Income objects
         """
@@ -412,13 +416,13 @@ class IncomeRepository:
             close_session(session)
 
     @staticmethod
-    def get_income_by_id(income_id: int) -> Optional[Income]:
+    def get_income_by_id(income_id: int) -> Income | None:
         """
         Retrieve a single income record by ID.
-        
+
         Args:
             income_id: The income ID to look up
-            
+
         Returns:
             Income object if found, None otherwise
         """
@@ -434,21 +438,21 @@ class IncomeRepository:
     @staticmethod
     def update_income(
         income_id: int,
-        income_date: Optional[date] = None,
-        amount: Optional[float] = None,
-        source: Optional[str] = None,
-        notes: Optional[str] = None,
+        income_date: date | None = None,
+        amount: float | None = None,
+        source: str | None = None,
+        notes: str | None = None,
     ) -> bool:
         """
         Update an existing income record.
-        
+
         Args:
             income_id: ID of income to update
             income_date: New date (optional)
             amount: New amount (optional)
             source: New source (optional)
             notes: New notes (optional)
-            
+
         Returns:
             True if successful, False otherwise
         """
@@ -484,10 +488,10 @@ class IncomeRepository:
     def delete_income(income_id: int) -> bool:
         """
         Delete an income record by ID.
-        
+
         Args:
             income_id: ID of income to delete
-            
+
         Returns:
             True if successful, False otherwise
         """
@@ -510,14 +514,14 @@ class IncomeRepository:
             close_session(session)
 
     @staticmethod
-    def get_income_by_date_range(start_date: date, end_date: date) -> List[Income]:
+    def get_income_by_date_range(start_date: date, end_date: date) -> list[Income]:
         """
         Get income records within a date range.
-        
+
         Args:
             start_date: Start of range (inclusive)
             end_date: End of range (inclusive)
-            
+
         Returns:
             List of Income objects
         """
@@ -539,7 +543,7 @@ class IncomeRepository:
     def get_total_income() -> float:
         """
         Calculate total of all income.
-        
+
         Returns:
             Total income amount as float
         """
@@ -563,11 +567,11 @@ class SettingsRepository:
         return get_db_session()
 
     @staticmethod
-    def get_settings() -> Optional[Settings]:
+    def get_settings() -> Settings | None:
         """
         Get the current application settings.
         Returns the first settings record or None.
-        
+
         Returns:
             Settings object or None
         """
@@ -581,15 +585,15 @@ class SettingsRepository:
             close_session(session)
 
     @staticmethod
-    def save_settings(provider: str, model: str, api_key: Optional[str] = None) -> bool:
+    def save_settings(provider: str, model: str, api_key: str | None = None) -> bool:
         """
         Save or update application settings.
-        
+
         Args:
             provider: AI provider name
             model: Model name for the provider
             api_key: Optional API key (for cloud providers)
-            
+
         Returns:
             True if successful, False otherwise
         """

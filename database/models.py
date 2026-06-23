@@ -5,20 +5,23 @@ Defines SQLAlchemy ORM models for expenses, income, and settings tables.
 All models include proper field validation and string representations.
 """
 
-from datetime import datetime
-from sqlalchemy import Column, Integer, Float, String, Date, DateTime, Text
-from sqlalchemy.orm import DeclarativeBase
+from datetime import date, datetime
+from typing import ClassVar
+
+from sqlalchemy import Date, DateTime, Float, Integer, String, Text
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
 class Base(DeclarativeBase):
     """Base class for all database models."""
+
     pass
 
 
 class Expense(Base):
     """
     Expense model representing a single expense transaction.
-    
+
     Attributes:
         id: Primary key
         date: Date of the expense
@@ -29,25 +32,37 @@ class Expense(Base):
         notes: Optional additional notes
         created_at: Timestamp of record creation
     """
+
     __tablename__ = "expenses"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    date = Column(Date, nullable=False, index=True)
-    amount = Column(Float, nullable=False)
-    category = Column(String(50), nullable=False, index=True)
-    description = Column(String(200), nullable=False)
-    payment_method = Column(String(50), default="Cash")
-    notes = Column(Text, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    date: Mapped[date] = mapped_column(Date, nullable=False, index=True)
+    amount: Mapped[float] = mapped_column(Float, nullable=False)
+    category: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
+    description: Mapped[str] = mapped_column(String(200), nullable=False)
+    payment_method: Mapped[str] = mapped_column(String(50), default="Cash")
+    notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
-    VALID_CATEGORIES = [
-        "Food", "Transport", "Shopping", "Entertainment",
-        "Health", "Education", "Bills", "Investment",
-        "Salary", "Other"
+    VALID_CATEGORIES: ClassVar[list[str]] = [
+        "Food",
+        "Transport",
+        "Shopping",
+        "Entertainment",
+        "Health",
+        "Education",
+        "Bills",
+        "Investment",
+        "Salary",
+        "Other",
     ]
 
-    VALID_PAYMENT_METHODS = [
-        "Cash", "Card", "UPI", "Net Banking", "Other"
+    VALID_PAYMENT_METHODS: ClassVar[list[str]] = [
+        "Cash",
+        "Card",
+        "UPI",
+        "Net Banking",
+        "Other",
     ]
 
     def __repr__(self) -> str:
@@ -70,7 +85,7 @@ class Expense(Base):
 class Income(Base):
     """
     Income model representing money received.
-    
+
     Attributes:
         id: Primary key
         date: Date income was received
@@ -79,18 +94,25 @@ class Income(Base):
         notes: Optional additional notes
         created_at: Timestamp of record creation
     """
+
     __tablename__ = "income"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    date = Column(Date, nullable=False, index=True)
-    amount = Column(Float, nullable=False)
-    source = Column(String(100), nullable=False)
-    notes = Column(Text, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    date: Mapped[date] = mapped_column(Date, nullable=False, index=True)
+    amount: Mapped[float] = mapped_column(Float, nullable=False)
+    source: Mapped[str] = mapped_column(String(100), nullable=False)
+    notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
-    VALID_SOURCES = [
-        "Salary", "Freelance", "Investment", "Business",
-        "Rental", "Gift", "Refund", "Other"
+    VALID_SOURCES: ClassVar[list[str]] = [
+        "Salary",
+        "Freelance",
+        "Investment",
+        "Business",
+        "Rental",
+        "Gift",
+        "Refund",
+        "Other",
     ]
 
     def __repr__(self) -> str:
@@ -111,9 +133,9 @@ class Income(Base):
 class Settings(Base):
     """
     Application settings model.
-    
+
     Stores AI provider configuration and other app settings.
-    
+
     Attributes:
         id: Primary key
         provider: AI provider name (ollama, openai, gemini, openrouter)
@@ -121,15 +143,16 @@ class Settings(Base):
         api_key: API key (stored temporarily, not persisted to DB in production)
         created_at: Timestamp of record creation
     """
+
     __tablename__ = "settings"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    provider = Column(String(50), nullable=False, default="ollama")
-    model = Column(String(100), nullable=False, default="llama3")
-    api_key = Column(String(500), nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    provider: Mapped[str] = mapped_column(String(50), nullable=False, default="ollama")
+    model: Mapped[str] = mapped_column(String(100), nullable=False, default="llama3")
+    api_key: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
-    VALID_PROVIDERS = ["ollama", "openai", "gemini", "openrouter"]
+    VALID_PROVIDERS: ClassVar[list[str]] = ["ollama", "openai", "gemini", "openrouter"]
 
     def __repr__(self) -> str:
         return f"<Settings(provider='{self.provider}', model='{self.model}')>"

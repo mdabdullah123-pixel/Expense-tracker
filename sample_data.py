@@ -7,11 +7,11 @@ Run this script to populate the database with realistic sample data.
 
 import logging
 from datetime import date, timedelta
-from random import choice, randint, uniform, seed
+from random import choice, randint, seed, uniform
+from typing import TypedDict
 
 from database.db import init_db
 from database.repository import ExpenseRepository, IncomeRepository
-from database.models import Expense, Income
 
 logger = logging.getLogger(__name__)
 
@@ -127,7 +127,14 @@ SAMPLE_EXPENSES = {
     ],
 }
 
-SAMPLE_INCOME = [
+
+class SampleIncome(TypedDict):
+    source: str
+    min: int
+    max: int
+
+
+SAMPLE_INCOME: list[SampleIncome] = [
     {"source": "Salary", "min": 40000, "max": 80000},
     {"source": "Freelance", "min": 5000, "max": 25000},
     {"source": "Investment", "min": 1000, "max": 10000},
@@ -144,11 +151,11 @@ PAYMENT_METHODS = ["Cash", "Card", "UPI", "Net Banking", "Other"]
 def generate_sample_data(num_expenses: int = 100, num_income: int = 12):
     """
     Generate and insert sample data into the database.
-    
+
     Args:
         num_expenses: Number of sample expense records to create
         num_income: Number of sample income records to create
-        
+
     Returns:
         Tuple of (expenses_created, income_created)
     """
@@ -177,9 +184,7 @@ def generate_sample_data(num_expenses: int = 100, num_income: int = 12):
             amount = round(uniform(20, 2000), 2)
         elif category == "Shopping":
             amount = round(uniform(200, 15000), 2)
-        elif category == "Entertainment":
-            amount = round(uniform(100, 5000), 2)
-        elif category == "Health":
+        elif category in ("Entertainment", "Health"):
             amount = round(uniform(100, 5000), 2)
         elif category == "Education":
             amount = round(uniform(200, 10000), 2)
@@ -208,7 +213,11 @@ def generate_sample_data(num_expenses: int = 100, num_income: int = 12):
     for i in range(num_income):
         # Monthly income for the past year
         month_offset = i
-        year = today.year - ((12 - month_offset) // 12) if month_offset >= today.month else today.year
+        year = (
+            today.year - ((12 - month_offset) // 12)
+            if month_offset >= today.month
+            else today.year
+        )
         month = ((today.month - month_offset - 1) % 12) + 1
 
         try:
@@ -216,16 +225,16 @@ def generate_sample_data(num_expenses: int = 100, num_income: int = 12):
         except ValueError:
             income_date = date(year, month, 28)
 
-        income_info = choice(SAMPLE_INCOME)
+        income_info: SampleIncome = choice(SAMPLE_INCOME)
         amount = round(uniform(income_info["min"], income_info["max"]), 2)
 
-        result = IncomeRepository.add_income(
+        income_result = IncomeRepository.add_income(
             income_date=income_date,
             amount=amount,
             source=income_info["source"],
             notes=f"Sample income #{i + 1}",
         )
-        if result:
+        if income_result:
             income_created += 1
 
     logger.info(

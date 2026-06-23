@@ -1,0 +1,519 @@
+﻿I001 [*] Import block is un-sorted or un-formatted
+  --> database\repository.py:9:1
+   |
+ 7 |   """
+ 8 |
+ 9 | / import logging
+10 | | from datetime import date, datetime
+11 | | from typing import List, Optional, Tuple
+12 | | from sqlalchemy import func, extract, desc
+13 | | from sqlalchemy.orm import Session
+14 | |
+15 | | from database.db import get_db_session, close_session
+16 | | from database.models import Expense, Income, Settings
+   | |_____________________________________________________^
+17 |
+18 |   logger = logging.getLogger(__name__)
+   |
+help: Organize imports
+
+F401 [*] `datetime.datetime` imported but unused
+  --> database\repository.py:10:28
+   |
+ 9 | import logging
+10 | from datetime import date, datetime
+   |                            ^^^^^^^^
+11 | from typing import List, Optional, Tuple
+12 | from sqlalchemy import func, extract, desc
+   |
+help: Remove unused import: `datetime.datetime`
+
+UP035 `typing.List` is deprecated, use `list` instead
+  --> database\repository.py:11:1
+   |
+ 9 | import logging
+10 | from datetime import date, datetime
+11 | from typing import List, Optional, Tuple
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+12 | from sqlalchemy import func, extract, desc
+13 | from sqlalchemy.orm import Session
+   |
+
+UP035 `typing.Tuple` is deprecated, use `tuple` instead
+  --> database\repository.py:11:1
+   |
+ 9 | import logging
+10 | from datetime import date, datetime
+11 | from typing import List, Optional, Tuple
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+12 | from sqlalchemy import func, extract, desc
+13 | from sqlalchemy.orm import Session
+   |
+
+UP045 [*] Use `X | None` for type annotations
+  --> database\repository.py:36:16
+   |
+34 |         description: str,
+35 |         payment_method: str = "Cash",
+36 |         notes: Optional[str] = None,
+   |                ^^^^^^^^^^^^^
+37 |     ) -> Optional[Expense]:
+38 |         """
+   |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+  --> database\repository.py:37:10
+   |
+35 |         payment_method: str = "Cash",
+36 |         notes: Optional[str] = None,
+37 |     ) -> Optional[Expense]:
+   |          ^^^^^^^^^^^^^^^^^
+38 |         """
+39 |         Add a new expense to the database.
+   |
+help: Convert to `X | None`
+
+UP006 [*] Use `list` instead of `List` for type annotation
+  --> database\repository.py:82:31
+   |
+81 |     @staticmethod
+82 |     def get_all_expenses() -> List[Expense]:
+   |                               ^^^^
+83 |         """
+84 |         Retrieve all expenses ordered by date descending.
+   |
+help: Replace with `list`
+
+UP045 [*] Use `X | None` for type annotations
+   --> database\repository.py:99:47
+    |
+ 98 |     @staticmethod
+ 99 |     def get_expense_by_id(expense_id: int) -> Optional[Expense]:
+    |                                               ^^^^^^^^^^^^^^^^^
+100 |         """
+101 |         Retrieve a single expense by ID.
+    |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+   --> database\repository.py:121:23
+    |
+119 |     def update_expense(
+120 |         expense_id: int,
+121 |         expense_date: Optional[date] = None,
+    |                       ^^^^^^^^^^^^^^
+122 |         amount: Optional[float] = None,
+123 |         category: Optional[str] = None,
+    |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+   --> database\repository.py:122:17
+    |
+120 |         expense_id: int,
+121 |         expense_date: Optional[date] = None,
+122 |         amount: Optional[float] = None,
+    |                 ^^^^^^^^^^^^^^^
+123 |         category: Optional[str] = None,
+124 |         description: Optional[str] = None,
+    |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+   --> database\repository.py:123:19
+    |
+121 |         expense_date: Optional[date] = None,
+122 |         amount: Optional[float] = None,
+123 |         category: Optional[str] = None,
+    |                   ^^^^^^^^^^^^^
+124 |         description: Optional[str] = None,
+125 |         payment_method: Optional[str] = None,
+    |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+   --> database\repository.py:124:22
+    |
+122 |         amount: Optional[float] = None,
+123 |         category: Optional[str] = None,
+124 |         description: Optional[str] = None,
+    |                      ^^^^^^^^^^^^^
+125 |         payment_method: Optional[str] = None,
+126 |         notes: Optional[str] = None,
+    |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+   --> database\repository.py:125:25
+    |
+123 |         category: Optional[str] = None,
+124 |         description: Optional[str] = None,
+125 |         payment_method: Optional[str] = None,
+    |                         ^^^^^^^^^^^^^
+126 |         notes: Optional[str] = None,
+127 |     ) -> bool:
+    |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+   --> database\repository.py:126:16
+    |
+124 |         description: Optional[str] = None,
+125 |         payment_method: Optional[str] = None,
+126 |         notes: Optional[str] = None,
+    |                ^^^^^^^^^^^^^
+127 |     ) -> bool:
+128 |         """
+    |
+help: Convert to `X | None`
+
+UP006 [*] Use `list` instead of `List` for type annotation
+   --> database\repository.py:207:73
+    |
+206 |     @staticmethod
+207 |     def get_expenses_by_date_range(start_date: date, end_date: date) -> List[Expense]:
+    |                                                                         ^^^^
+208 |         """
+209 |         Get expenses within a date range.
+    |
+help: Replace with `list`
+
+UP006 [*] Use `list` instead of `List` for type annotation
+   --> database\repository.py:233:52
+    |
+232 |     @staticmethod
+233 |     def get_expenses_by_category(category: str) -> List[Expense]:
+    |                                                    ^^^^
+234 |         """
+235 |         Get all expenses for a specific category.
+    |
+help: Replace with `list`
+
+UP045 [*] Use `X | None` for type annotations
+   --> database\repository.py:317:41
+    |
+316 |     @staticmethod
+317 |     def get_category_totals(start_date: Optional[date] = None, end_date: Optional[date] = None) -> List[Tuple[str, float]]:
+    |                                         ^^^^^^^^^^^^^^
+318 |         """
+319 |         Get total spending per category, optionally filtered by date range.
+    |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+   --> database\repository.py:317:74
+    |
+316 |     @staticmethod
+317 |     def get_category_totals(start_date: Optional[date] = None, end_date: Optional[date] = None) -> List[Tuple[str, float]]:
+    |                                                                          ^^^^^^^^^^^^^^
+318 |         """
+319 |         Get total spending per category, optionally filtered by date range.
+    |
+help: Convert to `X | None`
+
+UP006 [*] Use `list` instead of `List` for type annotation
+   --> database\repository.py:317:100
+    |
+316 |     @staticmethod
+317 |     def get_category_totals(start_date: Optional[date] = None, end_date: Optional[date] = None) -> List[Tuple[str, float]]:
+    |                                                                                                    ^^^^
+318 |         """
+319 |         Get total spending per category, optionally filtered by date range.
+    |
+help: Replace with `list`
+
+UP006 [*] Use `tuple` instead of `Tuple` for type annotation
+   --> database\repository.py:317:105
+    |
+316 |     @staticmethod
+317 |     def get_category_totals(start_date: Optional[date] = None, end_date: Optional[date] = None) -> List[Tuple[str, float]]:
+    |                                                                                                         ^^^^^
+318 |         """
+319 |         Get total spending per category, optionally filtered by date range.
+    |
+help: Replace with `tuple`
+
+UP045 [*] Use `X | None` for type annotations
+   --> database\repository.py:361:16
+    |
+359 |         amount: float,
+360 |         source: str,
+361 |         notes: Optional[str] = None,
+    |                ^^^^^^^^^^^^^
+362 |     ) -> Optional[Income]:
+363 |         """
+    |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+   --> database\repository.py:362:10
+    |
+360 |         source: str,
+361 |         notes: Optional[str] = None,
+362 |     ) -> Optional[Income]:
+    |          ^^^^^^^^^^^^^^^^
+363 |         """
+364 |         Add a new income record.
+    |
+help: Convert to `X | None`
+
+UP006 [*] Use `list` instead of `List` for type annotation
+   --> database\repository.py:398:29
+    |
+397 |     @staticmethod
+398 |     def get_all_income() -> List[Income]:
+    |                             ^^^^
+399 |         """
+400 |         Retrieve all income records ordered by date descending.
+    |
+help: Replace with `list`
+
+UP045 [*] Use `X | None` for type annotations
+   --> database\repository.py:415:45
+    |
+414 |     @staticmethod
+415 |     def get_income_by_id(income_id: int) -> Optional[Income]:
+    |                                             ^^^^^^^^^^^^^^^^
+416 |         """
+417 |         Retrieve a single income record by ID.
+    |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+   --> database\repository.py:437:22
+    |
+435 |     def update_income(
+436 |         income_id: int,
+437 |         income_date: Optional[date] = None,
+    |                      ^^^^^^^^^^^^^^
+438 |         amount: Optional[float] = None,
+439 |         source: Optional[str] = None,
+    |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+   --> database\repository.py:438:17
+    |
+436 |         income_id: int,
+437 |         income_date: Optional[date] = None,
+438 |         amount: Optional[float] = None,
+    |                 ^^^^^^^^^^^^^^^
+439 |         source: Optional[str] = None,
+440 |         notes: Optional[str] = None,
+    |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+   --> database\repository.py:439:17
+    |
+437 |         income_date: Optional[date] = None,
+438 |         amount: Optional[float] = None,
+439 |         source: Optional[str] = None,
+    |                 ^^^^^^^^^^^^^
+440 |         notes: Optional[str] = None,
+441 |     ) -> bool:
+    |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+   --> database\repository.py:440:16
+    |
+438 |         amount: Optional[float] = None,
+439 |         source: Optional[str] = None,
+440 |         notes: Optional[str] = None,
+    |                ^^^^^^^^^^^^^
+441 |     ) -> bool:
+442 |         """
+    |
+help: Convert to `X | None`
+
+UP006 [*] Use `list` instead of `List` for type annotation
+   --> database\repository.py:513:71
+    |
+512 |     @staticmethod
+513 |     def get_income_by_date_range(start_date: date, end_date: date) -> List[Income]:
+    |                                                                       ^^^^
+514 |         """
+515 |         Get income records within a date range.
+    |
+help: Replace with `list`
+
+UP045 [*] Use `X | None` for type annotations
+   --> database\repository.py:566:27
+    |
+565 |     @staticmethod
+566 |     def get_settings() -> Optional[Settings]:
+    |                           ^^^^^^^^^^^^^^^^^^
+567 |         """
+568 |         Get the current application settings.
+    |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+   --> database\repository.py:584:59
+    |
+583 |     @staticmethod
+584 |     def save_settings(provider: str, model: str, api_key: Optional[str] = None) -> bool:
+    |                                                           ^^^^^^^^^^^^^
+585 |         """
+586 |         Save or update application settings.
+    |
+help: Convert to `X | None`
+
+F401 [*] `typing.Optional` imported but unused
+  --> pages\expenses.py:10:20
+   |
+ 8 | import logging
+ 9 | from datetime import date, datetime
+10 | from typing import Optional
+   |                    ^^^^^^^^
+11 |
+12 | import streamlit as st
+   |
+help: Remove unused import: `typing.Optional`
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> sample_data.py:8:1
+   |
+ 6 |   """
+ 7 |
+ 8 | / import logging
+ 9 | | from datetime import date, timedelta
+10 | | from random import choice, randint, uniform, seed
+11 | | import logging
+12 | |
+13 | | from database.db import init_db
+14 | | from database.repository import ExpenseRepository, IncomeRepository
+   | |___________________________________________________________________^
+15 |
+16 |   logger = logging.getLogger(__name__)
+   |
+help: Organize imports
+
+F811 [*] Redefinition of unused `logging` from line 8
+  --> sample_data.py:8:8
+   |
+ 6 | """
+ 7 |
+ 8 | import logging
+   |        ------- previous definition of `logging` here
+ 9 | from datetime import date, timedelta
+10 | from random import choice, randint, uniform, seed
+11 | import logging
+   |        ^^^^^^^ `logging` redefined here
+12 |
+13 | from database.db import init_db
+   |
+help: Remove definition: `logging`
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> services\analytics_service.py:9:1
+   |
+ 7 |   """
+ 8 |
+ 9 | / from datetime import date, timedelta
+10 | | import logging
+11 | | from typing import Any, Optional
+12 | |
+13 | | import pandas as pd
+14 | |
+15 | | from database.repository import ExpenseRepository, IncomeRepository
+   | |___________________________________________________________________^
+16 |
+17 |   logger = logging.getLogger(__name__)
+   |
+help: Organize imports
+
+F401 [*] `typing.Optional` imported but unused
+  --> services\analytics_service.py:11:25
+   |
+ 9 | from datetime import date, timedelta
+10 | import logging
+11 | from typing import Any, Optional
+   |                         ^^^^^^^^
+12 |
+13 | import pandas as pd
+   |
+help: Remove unused import: `typing.Optional`
+
+UP045 [*] Use `X | None` for type annotations
+  --> services\openai_service.py:38:70
+   |
+36 |         self.client = OpenAI(api_key=api_key) if api_key else None
+37 |
+38 |     def _make_request(self, system_prompt: str, user_prompt: str) -> Optional[str]:
+   |                                                                      ^^^^^^^^^^^^^
+39 |         """
+40 |         Send a chat completion request to OpenAI.
+   |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+  --> services\openai_service.py:68:55
+   |
+66 |             return None
+67 |
+68 |     def categorize_expense(self, description: str) -> Optional[str]:
+   |                                                       ^^^^^^^^^^^^^
+69 |         """
+70 |         Automatically suggest a category for an expense description.
+   |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+   --> services\openai_service.py:104:70
+    |
+102 |         return "Other"
+103 |
+104 |     def ask_financial_question(self, question: str, context: str) -> Optional[str]:
+    |                                                                      ^^^^^^^^^^^^^
+105 |         """
+106 |         Ask a financial question with user expense data as context.
+    |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+   --> services\openai_service.py:129:71
+    |
+127 |         return self._make_request(system_prompt, user_prompt)
+128 |
+129 |     def generate_report(self, report_type: str, data_context: str) -> Optional[str]:
+    |                                                                       ^^^^^^^^^^^^^
+130 |         """
+131 |         Generate a spending report.
+    |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+   --> services\openai_service.py:158:56
+    |
+156 |         return self._make_request(system_prompt, user_prompt)
+157 |
+158 |     def parse_receipt_text(self, receipt_text: str) -> Optional[dict]:
+    |                                                        ^^^^^^^^^^^^^^
+159 |         """
+160 |         Parse receipt/extracted text to extract structured information.
+    |
+help: Convert to `X | None`
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> utils\receipt_parser.py:9:1
+   |
+ 7 |   """
+ 8 |
+ 9 | / from datetime import datetime
+10 | | import contextlib
+11 | | import io
+12 | | import logging
+13 | | import re
+14 | |
+15 | | from PIL import Image
+   | |_____________________^
+16 |
+17 |   logger = logging.getLogger(__name__)
+   |
+help: Organize imports
+
+Found 42 errors.
+[*] 40 fixable with the `--fix` option.

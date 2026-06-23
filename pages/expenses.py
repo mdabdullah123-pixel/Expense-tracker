@@ -5,14 +5,13 @@ Allows users to add, view, edit, and delete expenses and income records.
 Includes AI-powered category suggestions and receipt scanning.
 """
 
-import streamlit as st
 import logging
 from datetime import date, datetime
-from typing import Optional
 
-from database.repository import ExpenseRepository, IncomeRepository
+import streamlit as st
+
 from database.models import Expense, Income
-from services.analytics_service import AnalyticsService
+from database.repository import ExpenseRepository, IncomeRepository
 from utils.helpers import format_currency, validate_amount
 from utils.receipt_parser import ReceiptParser
 
@@ -26,12 +25,14 @@ def render_expenses():
     st.divider()
 
     # Tab layout for different operations
-    tab1, tab2, tab3, tab4 = st.tabs([
-        "➕ Add Expense",
-        "💰 Add Income",
-        "📋 View All",
-        "📸 Scan Receipt",
-    ])
+    tab1, tab2, tab3, tab4 = st.tabs(
+        [
+            "Add Expense",
+            "Add Income",
+            "View All",
+            "Scan Receipt",
+        ]
+    )
 
     with tab1:
         render_add_expense()
@@ -140,7 +141,9 @@ def render_add_expense():
                     notes=notes.strip() if notes else None,
                 )
                 if result:
-                    st.success(f"✅ Expense added: {description} - {format_currency(amount)}")
+                    st.success(
+                        f"✅ Expense added: {description} - {format_currency(amount)}"
+                    )
                     st.balloons()
                 else:
                     st.error("❌ Failed to add expense. Please try again.")
@@ -205,7 +208,7 @@ def render_view_all():
     # Filters
     col1, col2 = st.columns(2)
     with col1:
-        filter_type = st.selectbox(
+        st.selectbox(
             "Filter by type",
             options=["All", "Expenses", "Income"],
         )
@@ -218,7 +221,8 @@ def render_view_all():
 
     if search:
         expenses = [
-            e for e in expenses
+            e
+            for e in expenses
             if search.lower() in e.description.lower()
             or search.lower() in e.category.lower()
         ]
@@ -236,12 +240,12 @@ def render_view_all():
                 with cols[3]:
                     st.markdown(f"{expense.description}")
                 with cols[4]:
-                    # Delete button
                     delete_key = f"del_exp_{expense.id}"
-                    if st.button("🗑️", key=delete_key, help="Delete this expense"):
-                        if ExpenseRepository.delete_expense(expense.id):
-                            st.success("Deleted!")
-                            st.rerun()
+                    if st.button(
+                        "🗑️", key=delete_key, help="Delete this expense"
+                    ) and ExpenseRepository.delete_expense(expense.id):
+                        st.success("Deleted!")
+                        st.rerun()
                 st.divider()
     else:
         st.info("No expenses recorded yet.")
@@ -252,7 +256,8 @@ def render_view_all():
 
     if search:
         incomes = [
-            i for i in incomes
+            i
+            for i in incomes
             if search.lower() in i.source.lower()
             or (i.notes and search.lower() in i.notes.lower())
         ]
@@ -271,10 +276,11 @@ def render_view_all():
                     st.markdown(f"{income.notes or ''}")
                 with cols[4]:
                     delete_key = f"del_inc_{income.id}"
-                    if st.button("🗑️", key=delete_key, help="Delete this income"):
-                        if IncomeRepository.delete_income(income.id):
-                            st.success("Deleted!")
-                            st.rerun()
+                    if st.button(
+                        "🗑️", key=delete_key, help="Delete this income"
+                    ) and IncomeRepository.delete_income(income.id):
+                        st.success("Deleted!")
+                        st.rerun()
                 st.divider()
     else:
         st.info("No income recorded yet.")
@@ -326,7 +332,9 @@ def render_receipt_scanner():
                         rec_date = receipt_data.get("date") or "Not detected"
                         st.info(f"**Date:** {rec_date}")
 
-                        category_suggest = receipt_data.get("category_suggestion", "Other")
+                        category_suggest = receipt_data.get(
+                            "category_suggestion", "Other"
+                        )
                         st.info(f"**Suggested Category:** {category_suggest}")
 
                     items = receipt_data.get("items", [])
@@ -353,9 +361,9 @@ def render_receipt_scanner():
                         category = st.selectbox(
                             "Category",
                             options=Expense.VALID_CATEGORIES,
-                            index=Expense.VALID_CATEGORIES.index(
-                                category_suggest
-                            ) if category_suggest in Expense.VALID_CATEGORIES else 0,
+                            index=Expense.VALID_CATEGORIES.index(category_suggest)
+                            if category_suggest in Expense.VALID_CATEGORIES
+                            else 0,
                         )
                         description = st.text_input(
                             "Description",
@@ -392,7 +400,9 @@ def render_receipt_scanner():
                 ai_service = st.session_state.get("ai_service")
                 if ai_service and ai_service.is_configured:
                     # Use AI to parse receipt
-                    st.info("AI will attempt to analyze the receipt. This may take a moment...")
+                    st.info(
+                        "AI will attempt to analyze the receipt. This may take a moment..."
+                    )
 
                     # For image-based receipts without OCR, we can't send images to all AIs
                     # so we'll show manual entry form
@@ -404,7 +414,7 @@ def render_receipt_scanner():
                     )
 
 
-def parse_date(date_str: Optional[str]) -> Optional[date]:
+def parse_date(date_str: str | None) -> date | None:
     """Try to parse a date string into a date object."""
     if not date_str:
         return None
