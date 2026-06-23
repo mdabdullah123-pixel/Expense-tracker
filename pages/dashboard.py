@@ -5,11 +5,9 @@ Displays key metrics (Total Income, Expenses, Savings) and interactive charts
 using Plotly. Provides a quick summary of the user's financial health.
 """
 
+import streamlit as st
 import logging
 from datetime import date
-
-import streamlit as st
-
 from services.analytics_service import AnalyticsService
 from utils.charts import ChartBuilder
 from utils.helpers import format_currency
@@ -74,14 +72,22 @@ def render_dashboard():
         st.subheader("🥧 Spending by Category")
         category_data = AnalyticsService.get_category_breakdown()
         fig_pie = ChartBuilder.create_category_pie_chart(category_data)
-        st.plotly_chart(fig_pie, width="stretch", key="dashboard_category_pie")
+        st.plotly_chart(
+        fig_pie,
+        width="stretch",
+        key="category_pie_chart"
+    )
 
     with right_col:
         # Top categories bar chart
         st.subheader("📊 Top Spending Categories")
         top_categories = AnalyticsService.get_top_categories(5)
         fig_top = ChartBuilder.create_top_categories_chart(top_categories)
-        st.plotly_chart(fig_top, width="stretch", key="dashboard_top_categories")
+        st.plotly_chart(
+        fig_top,
+        width="stretch",
+        key="top_categories_chart"
+    )
 
     # Second row of charts
     col1, col2 = st.columns(2)
@@ -95,7 +101,11 @@ def render_dashboard():
             monthly_expense,
             title=f"Expenses in {year}",
         )
-        st.plotly_chart(fig_line, width="stretch", key="dashboard_monthly_spending")
+        st.plotly_chart(
+        fig_line,
+        width="stretch",
+        key="monthly_spending_chart"
+    )
 
     with col2:
         # Income vs Expense bar chart
@@ -104,7 +114,11 @@ def render_dashboard():
         fig_bar = ChartBuilder.create_income_vs_expense_chart(
             monthly_expense, monthly_income
         )
-        st.plotly_chart(fig_bar, width="stretch", key="dashboard_income_vs_expense")
+        st.plotly_chart(
+        fig_bar,
+        width="stretch",
+        key="income_vs_expense_chart"
+    )
 
     # --- Recent Transactions ---
     st.divider()
@@ -116,7 +130,9 @@ def render_dashboard():
             ["date", "amount", "category", "description", "payment_method"]
         ]
         display_df["date"] = display_df["date"].astype(str)
-        display_df["amount"] = display_df["amount"].apply(lambda x: format_currency(x))
+        display_df["amount"] = display_df["amount"].apply(
+            lambda x: format_currency(x)
+        )
         display_df.columns = [
             "Date",
             "Amount",
@@ -126,9 +142,7 @@ def render_dashboard():
         ]
         st.dataframe(display_df, width="stretch")
     else:
-        st.info(
-            "No expenses recorded yet. Add your first expense in the Expenses page."
-        )
+        st.info("No expenses recorded yet. Add your first expense in the Expenses page.")
 
     # --- Unusual Spending Alerts ---
     st.divider()
@@ -150,6 +164,4 @@ def render_dashboard():
                     f"vs Average: {format_currency(item['average'])}"
                 )
     else:
-        st.info(
-            "No unusual spending patterns detected. Add more data for better insights."
-        )
+        st.info("No unusual spending patterns detected. Add more data for better insights.")
