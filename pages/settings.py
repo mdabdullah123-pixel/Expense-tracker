@@ -8,10 +8,12 @@ Allows users to configure and switch between AI providers:
 API keys are stored only in Streamlit session state, never persisted to disk.
 """
 
-import streamlit as st
 import logging
-from services.ai_service import AIService
+
+import streamlit as st
+
 from database.repository import SettingsRepository
+from services.ai_service import AIService
 
 logger = logging.getLogger(__name__)
 
@@ -160,7 +162,9 @@ def render_settings():
             )
             openrouter_url = st.text_input(
                 "OpenRouter Base URL",
-                value=st.session_state.get("openrouter_url", "https://openrouter.ai/api/v1"),
+                value=st.session_state.get(
+                    "openrouter_url", "https://openrouter.ai/api/v1"
+                ),
                 key="openrouter_url_input",
             )
             base_url = openrouter_url
@@ -180,7 +184,9 @@ def render_settings():
                         provider=provider,
                         model=model,
                         api_key=api_key if not is_local else None,
-                        base_url=base_url if is_local or provider == "openrouter" else None,
+                        base_url=base_url
+                        if is_local or provider == "openrouter"
+                        else None,
                     )
 
                     if success:
@@ -247,25 +253,27 @@ def render_settings():
         # Try to load saved settings from DB
         saved = SettingsRepository.get_settings()
         if saved:
-            st.info(f"Saved configuration found: **{saved.provider}/{saved.model}**. "
-                    f"Click 'Test Connection' to activate.")
+            st.info(
+                f"Saved configuration found: **{saved.provider}/{saved.model}**. "
+                f"Click 'Test Connection' to activate."
+            )
 
     # About section
     st.divider()
-    with st.expander("ℹ️ About AI Providers"):
+    with st.expander("About AI Providers"):
         st.markdown("""
         ### Local AI (Ollama)
         - Runs completely offline on your machine
         - No data leaves your computer
         - Requires Ollama installation
         - Models: llama3, mistral, gemma3
-        
+
         ### Cloud AI (BYOK)
         - **OpenAI**: Requires API key from platform.openai.com
         - **Gemini**: Requires API key from makersuite.google.com
         - **OpenRouter**: Requires API key from openrouter.ai
         - Your API keys are stored only in session state and never persisted
-        
+
         ### Security
         - API keys are NEVER stored in the database
         - Keys are kept only in your browser session

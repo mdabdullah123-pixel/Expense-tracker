@@ -8,10 +8,11 @@ initialization for all application tables.
 Uses SQLAlchemy for ORM support and connection pooling.
 """
 
-import os
 import logging
+import os
+
 from sqlalchemy import create_engine, event
-from sqlalchemy.orm import sessionmaker, scoped_session
+from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from database.models import Base
@@ -19,7 +20,9 @@ from database.models import Base
 logger = logging.getLogger(__name__)
 
 # Database file path - stored in the data directory
-DB_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data")
+DB_DIR = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data"
+)
 DB_PATH = os.path.join(DB_DIR, "expense_tracker.db")
 DATABASE_URL = f"sqlite:///{DB_PATH}"
 
@@ -27,16 +30,16 @@ DATABASE_URL = f"sqlite:///{DB_PATH}"
 def get_engine():
     """
     Create and return a SQLAlchemy engine instance.
-    
+
     Uses StaticPool for SQLite to avoid threading issues in Streamlit.
     Enables WAL mode for better concurrent read performance.
     Enforces foreign key constraints.
-    
+
     Returns:
         sqlalchemy.engine.Engine: Configured database engine
     """
     os.makedirs(DB_DIR, exist_ok=True)
-    
+
     engine = create_engine(
         DATABASE_URL,
         poolclass=StaticPool,
@@ -58,7 +61,7 @@ def get_engine():
 def get_db_session():
     """
     Create a scoped database session.
-    
+
     Returns:
         sqlalchemy.orm.Session: Database session for transactional operations
     """
@@ -72,7 +75,7 @@ def get_db_connection():
     """
     Get a database connection for raw SQL operations if needed.
     Maintained for backward compatibility.
-    
+
     Returns:
         tuple: (engine, session) for database operations
     """
@@ -84,7 +87,7 @@ def get_db_connection():
 def init_db():
     """
     Initialize the database schema.
-    
+
     Creates all defined tables if they don't exist.
     Should be called once at application startup.
     """
@@ -100,7 +103,7 @@ def init_db():
 def close_session(session):
     """
     Safely close a database session.
-    
+
     Args:
         session: SQLAlchemy session to close
     """

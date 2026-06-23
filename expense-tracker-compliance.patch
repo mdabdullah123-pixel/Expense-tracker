@@ -337,9 +337,9 @@ index bf4937f..47057fd 100644
 --- a/CHANGELOG.md
 +++ b/CHANGELOG.md
 @@ -2,12 +2,14 @@
- 
+
  All notable changes to this project will be documented in this file.
- 
+
 -## [1.0.0] - 2026-06-18
 -
 -### Added
@@ -731,7 +731,7 @@ index 1015f45..17a150d 100644
 @@ -35,5 +35,19 @@ markdown
  pytest
  pytest-cov
- 
+
 +# Quality & Static Analysis
 +ruff
 +mypy
@@ -793,6 +793,5 @@ index 0000000..b50ead9
 +- `streamlit run app.py` starts the application.
 +- `pytest` runs the automated tests with a coverage threshold.
 +- `.gitlab-ci.yml` runs quality, security, and test stages.
--- 
+--
 2.54.0.windows.1
-

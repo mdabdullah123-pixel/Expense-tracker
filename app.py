@@ -13,20 +13,21 @@ Features:
     - Receipt scanning with OCR
     - Multiple AI providers (Ollama, OpenAI, Gemini, OpenRouter)
     - Dark-mode friendly UI
-    
+
 Usage:
     streamlit run app.py
 """
 
-import streamlit as st
 import sys
-import os
 from pathlib import Path
+
+import streamlit as st
 
 # Ensure the project root is in the Python path
 sys.path.insert(0, str(Path(__file__).parent))
 
 import logging
+
 from database.db import init_db
 from database.repository import SettingsRepository
 from services.ai_service import AIService
@@ -89,7 +90,7 @@ def apply_custom_css():
         .stApp {
             background-color: #0E1117;
         }
-        
+
         /* Metric cards styling */
         .stMetric {
             background-color: #1E1E2E;
@@ -97,18 +98,18 @@ def apply_custom_css():
             border-radius: 10px;
             border: 1px solid #333;
         }
-        
+
         /* Button styling */
         .stButton button {
             border-radius: 8px;
             font-weight: 600;
         }
-        
+
         /* Sidebar styling */
         .css-1d391kg, .css-12oz5g7 {
             background-color: #1A1A2E;
         }
-        
+
         /* Chat message styling */
         .chat-user {
             background-color: #1E3A5F;
@@ -116,70 +117,70 @@ def apply_custom_css():
             border-radius: 10px;
             margin: 5px 0;
         }
-        
+
         .chat-assistant {
             background-color: #2D2D44;
             padding: 10px;
             border-radius: 10px;
             margin: 5px 0;
         }
-        
+
         /* Divider styling */
         .stDivider {
             border-color: #333;
         }
-        
+
         /* Info/Warning/Error boxes */
         .stAlert {
             border-radius: 8px;
         }
-        
+
         /* Tabs styling */
         .stTabs [data-baseweb="tab-list"] {
             gap: 2px;
         }
-        
+
         .stTabs [data-baseweb="tab"] {
             border-radius: 8px 8px 0 0;
             padding: 10px 20px;
         }
-        
+
         /* Progress bar */
         .stProgress > div > div {
             background-color: #4ECDC4;
         }
-        
+
         /* Dataframe */
         .stDataFrame {
             border-radius: 8px;
             overflow: hidden;
         }
-        
+
         /* Success message animation */
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(-10px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        
+
         .stAlert {
             animation: fadeIn 0.3s ease-in-out;
         }
-        
+
         /* Scrollbar styling */
         ::-webkit-scrollbar {
             width: 8px;
             height: 8px;
         }
-        
+
         ::-webkit-scrollbar-track {
             background: #1E1E2E;
         }
-        
+
         ::-webkit-scrollbar-thumb {
             background: #4ECDC4;
             border-radius: 4px;
         }
-        
+
         ::-webkit-scrollbar-thumb:hover {
             background: #45B7D1;
         }
@@ -285,7 +286,7 @@ def main():
         init_db()
     except Exception as e:
         logger.error("Failed to initialize database: %s", str(e))
-        st.error(f"❌ Database initialization failed: {str(e)}")
+        st.error(f"❌ Database initialization failed: {e!s}")
         st.stop()
 
     # Render sidebar and get selected page
@@ -296,22 +297,27 @@ def main():
 
     if selected_page == "dashboard":
         from pages.dashboard import render_dashboard
+
         render_dashboard()
 
     elif selected_page == "expenses":
         from pages.expenses import render_expenses
+
         render_expenses()
 
     elif selected_page == "reports":
         from pages.reports import render_reports
+
         render_reports()
 
     elif selected_page == "ai_assistant":
         from pages.ai_assistant import render_ai_assistant
+
         render_ai_assistant()
 
     elif selected_page == "settings":
         from pages.settings import render_settings
+
         render_settings()
 
 

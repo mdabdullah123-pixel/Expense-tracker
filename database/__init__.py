@@ -8,13 +8,13 @@ from database.models import Base, Expense, Income, Settings
 from database.repository import ExpenseRepository, IncomeRepository, SettingsRepository
 
 __all__ = [
-    "get_db_connection",
-    "init_db",
     "Base",
     "Expense",
-    "Income",
-    "Settings",
     "ExpenseRepository",
+    "Income",
     "IncomeRepository",
+    "Settings",
     "SettingsRepository",
+    "get_db_connection",
+    "init_db",
 ]

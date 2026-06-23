@@ -5,14 +5,13 @@ Tests CRUD operations for expenses, income, and settings
 with proper setup and teardown using an in-memory SQLite database.
 """
 
-import pytest
-from datetime import date, datetime
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from datetime import date
 
-from database.models import Base, Expense, Income, Settings
+import pytest
+from sqlalchemy import create_engine
+
+from database.models import Base, Expense, Income
 from database.repository import ExpenseRepository, IncomeRepository, SettingsRepository
-from database.db import get_db_session
 
 
 class TestExpenseModel:
@@ -23,14 +22,15 @@ class TestExpenseModel:
         """Set up in-memory database for testing."""
         self.engine = create_engine("sqlite:///:memory:", echo=False)
         Base.metadata.create_all(self.engine)
-        
+
         # Override get_engine to return test engine
         import database.db as db_module
+
         self._original_get_engine = db_module.get_engine
         db_module.get_engine = lambda: self.engine
-        
+
         yield
-        
+
         # Clean up
         db_module.get_engine = self._original_get_engine
 
@@ -83,9 +83,7 @@ class TestExpenseModel:
     def test_expense_repository_delete(self):
         """Test deleting an expense."""
         # Add expense and get its id via query
-        ExpenseRepository.add_expense(
-            date(2024, 1, 15), 100, "Food", "To Delete"
-        )
+        ExpenseRepository.add_expense(date(2024, 1, 15), 100, "Food", "To Delete")
         expenses = ExpenseRepository.get_all_expenses()
         assert len(expenses) == 1
         expense_id = expenses[0].id
@@ -114,13 +112,14 @@ class TestIncomeModel:
         """Set up in-memory database for testing."""
         self.engine = create_engine("sqlite:///:memory:", echo=False)
         Base.metadata.create_all(self.engine)
-        
+
         import database.db as db_module
+
         self._original_get_engine = db_module.get_engine
         db_module.get_engine = lambda: self.engine
-        
+
         yield
-        
+
         db_module.get_engine = self._original_get_engine
 
     def test_income_model_creation(self):
@@ -155,13 +154,14 @@ class TestSettingsModel:
         """Set up in-memory database for testing."""
         self.engine = create_engine("sqlite:///:memory:", echo=False)
         Base.metadata.create_all(self.engine)
-        
+
         import database.db as db_module
+
         self._original_get_engine = db_module.get_engine
         db_module.get_engine = lambda: self.engine
-        
+
         yield
-        
+
         db_module.get_engine = self._original_get_engine
 
     def test_save_and_retrieve_settings(self):

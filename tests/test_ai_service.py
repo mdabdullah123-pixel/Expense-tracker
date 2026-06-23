@@ -5,7 +5,6 @@ Tests the AI service factory, provider configuration,
 and fallback behavior for expense categorization and responses.
 """
 
-import pytest
 from services.ai_service import AIService
 
 

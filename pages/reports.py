@@ -7,9 +7,10 @@ budget recommendations, and savings suggestions.
 Reports can be downloaded as markdown files.
 """
 
-import streamlit as st
 import logging
 from datetime import date, timedelta
+
+import streamlit as st
 
 from services.analytics_service import AnalyticsService
 from utils.helpers import format_currency
@@ -53,8 +54,18 @@ def render_reports():
                 "Select Month",
                 options=list(range(1, 13)),
                 format_func=lambda m: [
-                    "January", "February", "March", "April", "May", "June",
-                    "July", "August", "September", "October", "November", "December"
+                    "January",
+                    "February",
+                    "March",
+                    "April",
+                    "May",
+                    "June",
+                    "July",
+                    "August",
+                    "September",
+                    "October",
+                    "November",
+                    "December",
                 ][m - 1],
                 index=date.today().month - 1,
             )
@@ -114,7 +125,9 @@ def render_reports():
     # Category breakdown
     if not expense_df.empty:
         st.subheader("📊 Category Breakdown")
-        category_totals = expense_df.groupby("category")["amount"].sum().sort_values(ascending=False)
+        category_totals = (
+            expense_df.groupby("category")["amount"].sum().sort_values(ascending=False)
+        )
 
         for cat, amt in category_totals.items():
             pct = (amt / total_expenses * 100) if total_expenses > 0 else 0
@@ -168,7 +181,9 @@ def render_reports():
                     st.markdown(report)
 
                     # Download button
-                    report_filename = f"{report_type_str}_report_{date.today().isoformat()}.md"
+                    report_filename = (
+                        f"{report_type_str}_report_{date.today().isoformat()}.md"
+                    )
                     st.download_button(
                         label="📥 Download Report (Markdown)",
                         data=report,
@@ -192,14 +207,20 @@ def render_reports():
 
     tips = []
     if savings_rate < 10:
-        tips.append("🚨 **Low savings rate detected.** Try to save at least 20% of your income.")
+        tips.append(
+            "🚨 **Low savings rate detected.** Try to save at least 20% of your income."
+        )
     if not expense_df.empty:
         top_cat = expense_df.groupby("category")["amount"].sum().idxmax()
-        tips.append(f"📌 **{top_cat}** is your highest expense category. "
-                     f"Consider if there are ways to reduce this spending.")
+        tips.append(
+            f"📌 **{top_cat}** is your highest expense category. "
+            f"Consider if there are ways to reduce this spending."
+        )
     if total_expenses > total_income:
-        tips.append("⚠️ **Expenses exceed income!** Review your spending and "
-                     "look for areas to cut back.")
+        tips.append(
+            "⚠️ **Expenses exceed income!** Review your spending and "
+            "look for areas to cut back."
+        )
 
     if tips:
         for tip in tips:
