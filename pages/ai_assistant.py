@@ -141,12 +141,12 @@ def get_answer(question: str) -> str:
                 top = max(category_data, key=lambda x: category_data[x])
                 amt = category_data[top]
                 lines.append(
-                    f"**{top}** is your biggest cost ({format_currency(amt)}). Cutting 10% saves {format_currency(amt*0.1)}!"
+                    f"**{top}** is your biggest cost ({format_currency(amt)}). Cutting 10% saves {format_currency(amt * 0.1)}!"
                 )
         lines.append("\n**50/30/20 Budget:**")
-        lines.append(f"• Needs (50%): {format_currency(total_income*0.5)}")
-        lines.append(f"• Wants (30%): {format_currency(total_income*0.3)}")
-        lines.append(f"• Savings (20%): {format_currency(total_income*0.2)}")
+        lines.append(f"• Needs (50%): {format_currency(total_income * 0.5)}")
+        lines.append(f"• Wants (30%): {format_currency(total_income * 0.3)}")
+        lines.append(f"• Savings (20%): {format_currency(total_income * 0.2)}")
         return "\n".join(lines)
 
     # Summary
