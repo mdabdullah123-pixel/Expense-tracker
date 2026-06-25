@@ -15,31 +15,19 @@ cache:
     - .venv
 
 before_script:
-  - |
-    $ErrorActionPreference = "Stop"
-    $uvBin = Join-Path $env:USERPROFILE ".local\bin"
-    if (Test-Path $uvBin) {
-      $env:Path = "$uvBin;$env:Path"
-    }
-    if (-not (Get-Command uv -ErrorAction SilentlyContinue)) {
-      Invoke-RestMethod https://astral.sh/uv/install.ps1 | Invoke-Expression
-      $env:Path = "$uvBin;$env:Path"
-    }
-    uv --version
-    uv python install 3.11
-    uv venv --python 3.11 --seed .venv
-    $venvScripts = Join-Path (Resolve-Path ".venv").Path "Scripts"
-    $env:VIRTUAL_ENV = (Resolve-Path ".venv").Path
-    $env:Path = "$venvScripts;$env:Path"
-    python --version
-    python -m pip install --upgrade pip
+  - python --version
+  - if (Test-Path .venv) { Remove-Item -Recurse .venv -Force }
+  - python -m venv .venv
+  - & .\.venv\Scripts\Activate.ps1
+  - python -m pip install --upgrade pip
+  - python -m pip install -r requirements.txt
 
 format:
   stage: lint
   script:
     - python -m pip install ruff
-    - python -m ruff format --check .
-
+    - python -m ruff format .
+    
 lint:
   stage: lint
   script:
@@ -51,14 +39,12 @@ lint:
 type_check:
   stage: test
   script:
-    - python -m pip install -r requirements.txt
     - python -m pip install mypy types-requests
     - python -m mypy .
 
 test:
   stage: test
   script:
-    - python -m pip install -r requirements.txt
     - python -m pytest --cov=. --cov-report=term-missing --cov-report=xml
   artifacts:
     when: always
@@ -72,7 +58,6 @@ test:
 coverage:
   stage: test
   script:
-    - python -m pip install -r requirements.txt
     - python -m pytest --cov=. --cov-report=xml
   artifacts:
     when: always
